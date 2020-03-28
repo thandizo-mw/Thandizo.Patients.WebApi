@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.29806.167
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Thandizo.Patients.WebApi", "Thandizo.Patients.WebApi\Thandizo.Patients.WebApi.csproj", "{9F5C24C0-02C8-40B1-878C-3AC63E820383}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Thandizo.Patients.BLL", "Thandizo.Patients.BLL\Thandizo.Patients.BLL.csproj", "{0222DA29-4998-4188-BDC2-BE8184FC3F4A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{9F5C24C0-02C8-40B1-878C-3AC63E820383}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9F5C24C0-02C8-40B1-878C-3AC63E820383}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9F5C24C0-02C8-40B1-878C-3AC63E820383}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0222DA29-4998-4188-BDC2-BE8184FC3F4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0222DA29-4998-4188-BDC2-BE8184FC3F4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0222DA29-4998-4188-BDC2-BE8184FC3F4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0222DA29-4998-4188-BDC2-BE8184FC3F4A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

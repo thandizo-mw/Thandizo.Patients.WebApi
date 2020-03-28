@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
+    <ProjectReference Include="..\Thandizo.Patients.BLL\Thandizo.Patients.BLL.csproj" />
   </ItemGroup>
 
 
