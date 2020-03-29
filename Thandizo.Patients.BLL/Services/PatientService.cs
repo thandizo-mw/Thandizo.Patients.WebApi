@@ -20,10 +20,21 @@ namespace Thandizo.Patients.BLL.Services
             _context = context;
         }
 
+        public async Task<OutputResponse> GetByPhoneNumber(string phoneNumber)
+        {
+            var patient = await _context.Patients.FirstOrDefaultAsync(x => x.PhoneNumber.Equals(phoneNumber));
+            var mappedPatient = new AutoMapperHelper<DAL.Models.Patients, PatientDTO>().MapToObject(patient);
+
+            return new OutputResponse
+            {
+                IsErrorOccured = false,
+                Result = mappedPatient
+            };
+        }
+
         public async Task<OutputResponse> Get(long patientId)
         {
             var patient = await _context.Patients.FirstOrDefaultAsync(x => x.PatientId.Equals(patientId));
-
             var mappedPatient = new AutoMapperHelper<DAL.Models.Patients, PatientDTO>().MapToObject(patient);
 
             return new OutputResponse

@@ -18,6 +18,20 @@ namespace Thandizo.Patients.WebApi.Controllers
             _service = service;
         }
 
+        [HttpGet("GetByPhoneNumber")]
+        [CatchException(MessageHelper.GetItemError)]
+        public async Task<IActionResult> GetByPhoneNumber([FromQuery] string phoneNumber)
+        {
+            var response = await _service.GetByPhoneNumber(phoneNumber);
+
+            if (response.IsErrorOccured)
+            {
+                return BadRequest(response.Message);
+            }
+
+            return Ok(response.Result);
+        }
+
         [HttpGet("GetById")]
         [CatchException(MessageHelper.GetItemError)]
         public async Task<IActionResult> GetById([FromQuery] long patientId)
