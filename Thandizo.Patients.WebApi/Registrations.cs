@@ -12,7 +12,7 @@ namespace Thandizo.Patients.WebApi
         /// <param name="services"></param>
         public static IServiceCollection AddDomainServices(this IServiceCollection services)
         {
-            //services.AddScoped<IPatientRepository, PatientRepository>();
+            services.AddScoped<ISymptomService, SymptomService>();
             return services.AddScoped<IPatientStatusService, PatientStatusService>();
         }
     }
