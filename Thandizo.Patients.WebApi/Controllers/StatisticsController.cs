@@ -17,9 +17,9 @@ namespace Thandizo.Patients.WebApi.Controllers
             _service = service;
         }
 
-        [HttpGet("GetByDistricts")]
+        [HttpGet("GetByDistrict")]
         [CatchException(MessageHelper.GetItemError)]
-        public async Task<IActionResult> GetByDistricts()
+        public async Task<IActionResult> GetByDistrict()
         {
             var response = await _service.GetByDistricts();
 
