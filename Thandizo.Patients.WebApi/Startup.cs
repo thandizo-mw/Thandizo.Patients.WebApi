@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System;
+using System.IO;
 using Thandizo.DAL.Models;
 
 namespace Thandizo.Patients.WebApi
@@ -24,6 +26,17 @@ namespace Thandizo.Patients.WebApi
             services.AddEntityFrameworkNpgsql().AddDbContext<thandizoContext>(options =>
                         options.UseNpgsql(Configuration.GetConnectionString("DatabaseConnection")));
             services.AddDomainServices();
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+                {
+                    Version = "v1",
+                    Title = "Thandizo Patients API",
+                    Description = "Patients API for Thandizo platform",
+                    Contact = new Microsoft.OpenApi.Models.OpenApiContact { Name = "COVID-19 Malawi Tech Response", Email = "thandizo.mw@gmail.com", Url = new Uri("http://www.angledimension.com") }
+                });
+                c.IncludeXmlComments(GetXmlCommentsPath());
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -32,6 +45,11 @@ namespace Thandizo.Patients.WebApi
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseSwagger();
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Khusa API V1");
+                });
             }
 
             app.UseHttpsRedirection();
@@ -42,6 +60,11 @@ namespace Thandizo.Patients.WebApi
             {
                 endpoints.MapControllers();
             });
+        }
+
+        private string GetXmlCommentsPath()
+        {
+            return Path.Combine(AppContext.BaseDirectory, "Thandizo.Patients.WebApi.xml");
         }
     }
 }
