@@ -53,10 +53,10 @@ namespace Thandizo.Patients.WebApi.Controllers
             var outputHandler = await _service.Add(classification);
             if (outputHandler.IsErrorOccured)
             {
-                return BadRequest(outputHandler);
+                return BadRequest(outputHandler.Message);
             }
 
-            return Created("", outputHandler);
+            return Created("", outputHandler.Message);
         }
 
         [HttpPut("Update")]
@@ -66,10 +66,10 @@ namespace Thandizo.Patients.WebApi.Controllers
             var outputHandler = await _service.Update(classification);
             if (outputHandler.IsErrorOccured)
             {
-                return BadRequest(outputHandler);
+                return BadRequest(outputHandler.Message);
             }
 
-            return Ok(outputHandler);
+            return Ok(outputHandler.Message);
         }
 
         [HttpDelete("Delete")]
@@ -79,10 +79,10 @@ namespace Thandizo.Patients.WebApi.Controllers
             var outputHandler = await _service.Delete(classificationId);
             if (outputHandler.IsErrorOccured)
             {
-                return BadRequest(outputHandler);
+                return BadRequest(outputHandler.Message);
             }
 
-            return Ok(outputHandler);
+            return Ok(outputHandler.Message);
         }
     }
 }

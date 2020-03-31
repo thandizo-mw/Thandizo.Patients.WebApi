@@ -53,10 +53,10 @@ namespace Thandizo.Core.WebApi.Controllers
             var outputHandler = await _service.Add(patientStatus);
             if (outputHandler.IsErrorOccured)
             {
-                return BadRequest(outputHandler);
+                return BadRequest(outputHandler.Message);
             }
 
-            return Created("", outputHandler);
+            return Created("", outputHandler.Message);
         }
 
         [HttpPut("Update")]
@@ -66,10 +66,10 @@ namespace Thandizo.Core.WebApi.Controllers
             var outputHandler = await _service.Update(patientStatus);
             if (outputHandler.IsErrorOccured)
             {
-                return BadRequest(outputHandler);
+                return BadRequest(outputHandler.Message);
             }
 
-            return Ok(outputHandler);
+            return Ok(outputHandler.Message);
         }
 
         [HttpDelete("Delete")]
@@ -79,10 +79,10 @@ namespace Thandizo.Core.WebApi.Controllers
             var outputHandler = await _service.Delete(statusId);
             if (outputHandler.IsErrorOccured)
             {
-                return BadRequest(outputHandler);
+                return BadRequest(outputHandler.Message);
             }
 
-            return Ok(outputHandler);
+            return Ok(outputHandler.Message);
         }
     }
 }

@@ -53,10 +53,10 @@ namespace Thandizo.Patients.WebApi.Controllers
             var outputHandler = await _service.Add(patientHistory);
             if (outputHandler.IsErrorOccured)
             {
-                return BadRequest(outputHandler);
+                return BadRequest(outputHandler.Message);
             }
 
-            return Created("", outputHandler);
+            return Created("", outputHandler.Message);
         }
     }
 }
