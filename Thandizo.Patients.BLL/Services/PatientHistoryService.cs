@@ -8,6 +8,7 @@ using Thandizo.ApiExtensions.General;
 using Thandizo.DAL.Models;
 using Thandizo.DataModels.General;
 using Thandizo.DataModels.Patients;
+using Thandizo.DataModels.Patients.Responses;
 
 namespace Thandizo.Patients.BLL.Services
 {
@@ -22,14 +23,22 @@ namespace Thandizo.Patients.BLL.Services
 
         public async Task<OutputResponse> Get(long historyId)
         {
-            var history = await _context.PatientHistory.FirstOrDefaultAsync(x => x.HistoryId.Equals(historyId));
-
-            var mappedHistory = new AutoMapperHelper<PatientHistory, PatientHistoryDTO>().MapToObject(history);
+            var history = await _context.PatientHistory.Where(x => x.HistoryId.Equals(historyId))
+                .Select(x => new PatientHistoryResponse
+                {
+                    CreatedBy = x.CreatedBy,
+                    DateCreated = x.DateCreated,
+                    DateReported = x.DateReported,
+                    HistoryId = x.HistoryId,
+                    PatientId = x.PatientId,
+                    PatientStatusId = x.PatientStatusId,
+                    PatientStatusName = x.PatientStatus.PatientStatusName
+                }).FirstOrDefaultAsync();
 
             return new OutputResponse
             {
                 IsErrorOccured = false,
-                Result = mappedHistory
+                Result = history
             };
         }
 
@@ -37,14 +46,21 @@ namespace Thandizo.Patients.BLL.Services
         {
             var histories = await _context.PatientHistory.Where(x => x.PatientId.Equals(patientId))
                 .OrderBy(x => x.DateReported)
-                .ToListAsync();
-
-            var mappedHistories = new AutoMapperHelper<PatientHistory, PatientHistoryDTO>().MapToList(histories);
+                .Select(x => new PatientHistoryResponse
+                {
+                    CreatedBy = x.CreatedBy,
+                    DateCreated = x.DateCreated,
+                    DateReported = x.DateReported,
+                    HistoryId = x.HistoryId,
+                    PatientId = x.PatientId,
+                    PatientStatusId = x.PatientStatusId,
+                    PatientStatusName = x.PatientStatus.PatientStatusName
+                }).ToListAsync();
 
             return new OutputResponse
             {
                 IsErrorOccured = false,
-                Result = mappedHistories
+                Result = histories
             };
         }
 

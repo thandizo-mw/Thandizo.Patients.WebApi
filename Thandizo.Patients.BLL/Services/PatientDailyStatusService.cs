@@ -9,6 +9,7 @@ using Thandizo.ApiExtensions.General;
 using Thandizo.DAL.Models;
 using Thandizo.DataModels.General;
 using Thandizo.DataModels.Patients;
+using Thandizo.DataModels.Patients.Responses;
 
 namespace Thandizo.Patients.BLL.Services
 {
@@ -23,14 +24,22 @@ namespace Thandizo.Patients.BLL.Services
 
         public async Task<OutputResponse> Get(long submissionId)
         {
-            var dailyStatus = await _context.PatientDailyStatuses.FirstOrDefaultAsync(x => x.SubmissionId.Equals(submissionId));
-
-            var mappedDailyStatus = new AutoMapperHelper<PatientDailyStatuses, PatientDailyStatusDTO>().MapToObject(dailyStatus);
+            var dailyStatus = await _context.PatientDailyStatuses.Where(x => x.SubmissionId.Equals(submissionId))
+                              .Select(x => new PatientDailyStatusResponse
+                              {
+                                  CreatedBy = x.CreatedBy,
+                                  SymptomName = x.Symptom.SymptomName,
+                                  DateCreated = x.DateCreated,
+                                  DateSubmitted = x.DateSubmitted,
+                                  PatientId = x.PatientId,
+                                  SubmissionId = x.SubmissionId,
+                                  SymptomId = x.SymptomId
+                              }).FirstOrDefaultAsync();
 
             return new OutputResponse
             {
                 IsErrorOccured = false,
-                Result = mappedDailyStatus
+                Result = dailyStatus
             };
         }
 
@@ -39,14 +48,23 @@ namespace Thandizo.Patients.BLL.Services
             var dailyStatuses = await _context.PatientDailyStatuses.Where(x => x.PatientId.Equals(patientId))
                 .OrderBy(x => x.DateSubmitted)
                 .ThenBy(x => x.SymptomId)
+                .Select(x => new PatientDailyStatusResponse
+                {
+                    CreatedBy = x.CreatedBy,
+                    SymptomName = x.Symptom.SymptomName,
+                    DateCreated = x.DateCreated,
+                    DateSubmitted = x.DateSubmitted,
+                    PatientId = x.PatientId,
+                    SubmissionId = x.SubmissionId,
+                    SymptomId = x.SymptomId
+                })
                 .ToListAsync();
 
-            var mappedDailyStatuses = new AutoMapperHelper<PatientDailyStatuses, PatientDailyStatusDTO>().MapToList(dailyStatuses);
 
             return new OutputResponse
             {
                 IsErrorOccured = false,
-                Result = mappedDailyStatuses
+                Result = dailyStatuses
             };
         }
 
