@@ -24,6 +24,7 @@ namespace Thandizo.Patients.BLL.Services
                                     join r in _context.Regions on d.RegionId equals r.RegionId
                                     join s in _context.PatientStatuses on p.PatientStatusId equals s.PatientStatusId
                                     group p by new { d.DistrictName, s.PatientStatusName, r.RegionName } into ds
+                                    orderby ds.Key.PatientStatusName
                                     select new DistrictStatisticsDTO
                                     {
                                         TotalNumberOfPatients = ds.Count(),
@@ -46,6 +47,7 @@ namespace Thandizo.Patients.BLL.Services
                                     join r in _context.Regions on d.RegionId equals r.RegionId
                                     join s in _context.PatientStatuses on p.PatientStatusId equals s.PatientStatusId
                                     group p by new { s.PatientStatusName, r.RegionName } into ds
+                                    orderby ds.Key.PatientStatusName
                                     select new RegionalStatisticsDTO
                                     {
                                         TotalNumberOfPatients = ds.Count(),
@@ -67,6 +69,7 @@ namespace Thandizo.Patients.BLL.Services
                                     join r in _context.Regions on d.RegionId equals r.RegionId
                                     join s in _context.PatientStatuses on p.PatientStatusId equals s.PatientStatusId
                                     group p by new { s.PatientStatusName } into ds
+                                    orderby ds.Key.PatientStatusName
                                     select new NationalStatisticsDTO
                                     {
                                         TotalNumberOfPatients = ds.Count(),
