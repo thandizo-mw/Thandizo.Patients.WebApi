@@ -45,12 +45,14 @@ namespace Thandizo.Patients.WebApi
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c =>
-                {
-                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Thandizo Khusa API V1");
-                });
             }
+
+            //this is not needed in PRODUCTION but only in Hosted Testing Environment
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Thandizo Khusa API V1");
+            });
 
             app.UseHttpsRedirection();
             app.UseRouting();
