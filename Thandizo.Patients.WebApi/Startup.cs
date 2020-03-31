@@ -48,7 +48,7 @@ namespace Thandizo.Patients.WebApi
                 app.UseSwagger();
                 app.UseSwaggerUI(c =>
                 {
-                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Khusa API V1");
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Thandizo Khusa API V1");
                 });
             }
 
