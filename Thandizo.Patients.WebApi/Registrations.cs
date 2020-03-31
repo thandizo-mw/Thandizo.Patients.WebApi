@@ -17,6 +17,9 @@ namespace Thandizo.Patients.WebApi
             services.AddScoped<IPatientHistoryService, PatientHistoryService>();
             services.AddScoped<ISymptomService, SymptomService>();
             services.AddScoped<ITransmissionClassificationService, TransmissionClassificationService>();
+            services.AddScoped<IPatientTravelHistoryService, PatientTravelHistoryService>();
+            services.AddScoped<IPatientLocationMovementService, PatientLocationMovementService>();
+            services.AddScoped<IPatientFacilityMovementService, PatientFacilityMovementService>();
             return services.AddScoped<IPatientStatusService, PatientStatusService>();
         }
     }
