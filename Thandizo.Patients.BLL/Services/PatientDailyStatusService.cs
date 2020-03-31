@@ -52,12 +52,33 @@ namespace Thandizo.Patients.BLL.Services
 
         public async Task<OutputResponse> Add(IEnumerable<PatientDailyStatusDTO> statuses)
         {
+            var submissionDate = DateTime.Now.Date;
+            var symptomsToSubmit = statuses.Select(x => x.SymptomId);
+            var patientId = statuses.FirstOrDefault().PatientId;
+
+            //check if the status(es) have been submitted already for the day to avoid duplicates
+            var submittedSymptoms = await _context.PatientDailyStatuses.Where(x => x.DateSubmitted.Equals(submissionDate)
+                     && symptomsToSubmit.Contains(x.SymptomId) && x.PatientId.Equals(patientId))
+                    .Select(x => x.Symptom.SymptomName).ToArrayAsync();
+
+            if (submittedSymptoms.Length > 0)
+            {
+                var message = string.Join(", ", submittedSymptoms);
+
+                return new OutputResponse
+                {
+                    IsErrorOccured = true,
+                    Message = $"You have already submitted the following symptoms for { string.Format("{0:dd-MMM-yyyy}", submissionDate) }: { message }"
+                };
+            }
+
             using (TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 foreach (var status in statuses)
                 {
                     var mappedStatus = new AutoMapperHelper<PatientDailyStatusDTO, PatientDailyStatuses>().MapToObject(status);
                     mappedStatus.DateCreated = DateTime.UtcNow.AddHours(2);
+                    mappedStatus.DateSubmitted = submissionDate;
 
                     await _context.PatientDailyStatuses.AddAsync(mappedStatus);
                 }
