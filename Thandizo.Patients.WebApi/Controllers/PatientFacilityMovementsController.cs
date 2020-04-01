@@ -61,6 +61,7 @@ namespace Thandizo.Patients.WebApi.Controllers
         }
 
         [HttpPost("Add")]
+        [ValidateModelState]
         [CatchException(MessageHelper.AddNewError)]
         public async Task<IActionResult> Add([FromBody]PatientFacilityMovementDTO patientFacilityMovement)
         {
@@ -74,6 +75,7 @@ namespace Thandizo.Patients.WebApi.Controllers
         }
 
         [HttpPut("Update")]
+        [ValidateModelState]
         [CatchException(MessageHelper.UpdateError)]
         public async Task<IActionResult> Update([FromBody]PatientFacilityMovementDTO patientFacilityMovement)
         {
