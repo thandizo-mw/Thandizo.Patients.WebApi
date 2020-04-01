@@ -8,6 +8,7 @@ using Thandizo.ApiExtensions.General;
 using Thandizo.DAL.Models;
 using Thandizo.DataModels.General;
 using Thandizo.DataModels.Patients;
+using Thandizo.DataModels.Patients.Responses;
 
 namespace Thandizo.Patients.BLL.Services
 {
@@ -20,51 +21,83 @@ namespace Thandizo.Patients.BLL.Services
             _context = context;
         }
 
-        public async Task<OutputResponse> Get(long facilityMovementId)
+        public async Task<OutputResponse> Get(long movementId)
         {
-            var patientFacilityMovement = await _context.PatientFacilityMovements.FirstOrDefaultAsync(x => x.MovementId.Equals(facilityMovementId));
-            var mappedPatientFacilityMovement = new AutoMapperHelper<DAL.Models.PatientFacilityMovements, PatientFacilityMovementDTO>().MapToObject(patientFacilityMovement);
+            var movement = await _context.PatientFacilityMovements.Where(x => x.MovementId.Equals(movementId))
+                    .Select(x => new PatientFacilityMovementResponse
+                    {
+                        CreatedBy = x.CreatedBy,
+                        DateCreated = x.DateCreated,
+                        FromDataCenterId = x.FromDataCenterId,
+                        FromDataCenterName = x.FromDataCenter.CenterName,
+                        MovementDate = x.MovementDate,
+                        MovementId = x.MovementId,
+                        PatientId = x.PatientId,
+                        ToDataCenterId = x.ToDataCenterId,
+                        ToDataCenterName = x.ToDataCenter.CenterName
+                    }).FirstOrDefaultAsync();
 
             return new OutputResponse
             {
                 IsErrorOccured = false,
-                Result = mappedPatientFacilityMovement
+                Result = movement
             };
         }
 
         public async Task<OutputResponse> Get()
         {
-            var patientFacilityMovements = await _context.PatientFacilityMovements.OrderBy(x => x.MovementDate).ToListAsync();
-
-            var mappedPatientFacilityMovements = new AutoMapperHelper<PatientFacilityMovements, PatientFacilityMovementDTO>().MapToList(patientFacilityMovements);
+            var movements = await _context.PatientFacilityMovements.OrderBy(x => x.PatientId).ThenBy(x => x.MovementDate)
+                .Select(x => new PatientFacilityMovementResponse
+                {
+                    CreatedBy = x.CreatedBy,
+                    DateCreated = x.DateCreated,
+                    FromDataCenterId = x.FromDataCenterId,
+                    FromDataCenterName = x.FromDataCenter.CenterName,
+                    MovementDate = x.MovementDate,
+                    MovementId = x.MovementId,
+                    PatientId = x.PatientId,
+                    ToDataCenterId = x.ToDataCenterId,
+                    ToDataCenterName = x.ToDataCenter.CenterName
+                }).ToListAsync();
 
             return new OutputResponse
             {
                 IsErrorOccured = false,
-                Result = mappedPatientFacilityMovements
+                Result = movements
             };
         }
 
         public async Task<OutputResponse> GetByPatient(long patientId)
         {
-            var patientFacilityMovement = await _context.PatientFacilityMovements.Where(x => x.PatientId.Equals(patientId)).ToListAsync();
-            var mappedPatientFacilityMovement = new AutoMapperHelper<PatientFacilityMovements, PatientFacilityMovementDTO>().MapToList(patientFacilityMovement);
+            var movements = await _context.PatientFacilityMovements.Where(x => x.PatientId.Equals(patientId))
+                .Select(x => new PatientFacilityMovementResponse
+                {
+                    CreatedBy = x.CreatedBy,
+                    DateCreated = x.DateCreated,
+                    FromDataCenterId = x.FromDataCenterId,
+                    FromDataCenterName = x.FromDataCenter.CenterName,
+                    MovementDate = x.MovementDate,
+                    MovementId = x.MovementId,
+                    PatientId = x.PatientId,
+                    ToDataCenterId = x.ToDataCenterId,
+                    ToDataCenterName = x.ToDataCenter.CenterName
+                }).ToListAsync();
 
             return new OutputResponse
             {
                 IsErrorOccured = false,
-                Result = mappedPatientFacilityMovement
+                Result = movements
             };
         }
 
-        public async Task<OutputResponse> Add(PatientFacilityMovementDTO patientFacilityMovement)
+        public async Task<OutputResponse> Add(PatientFacilityMovementDTO movement)
         {
             using (TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
-                var mappedPatientFacilityMovement = new AutoMapperHelper<PatientFacilityMovementDTO, DAL.Models.PatientFacilityMovements>().MapToObject(patientFacilityMovement);
-                mappedPatientFacilityMovement.DateCreated = DateTime.UtcNow.AddHours(2);
+                var mappedMovement = new AutoMapperHelper<PatientFacilityMovementDTO, PatientFacilityMovements>().MapToObject(movement);
+                mappedMovement.DateCreated = DateTime.UtcNow.AddHours(2);
 
-                var addedPatientFacilityMovement = await _context.PatientFacilityMovements.AddAsync(mappedPatientFacilityMovement);
+                await _context.PatientFacilityMovements.AddAsync(mappedMovement);
                 await _context.SaveChangesAsync();
 
                 scope.Complete();
@@ -76,11 +109,12 @@ namespace Thandizo.Patients.BLL.Services
             };
         }
 
-        public async Task<OutputResponse> Update(PatientFacilityMovementDTO patientFacilityMovement)
+        public async Task<OutputResponse> Update(PatientFacilityMovementDTO movement)
         {
-            var patientFacilityMovementToUpdate = await _context.PatientFacilityMovements.FirstOrDefaultAsync(x => x.MovementId.Equals(patientFacilityMovement.MovementId));
+            var movementToUpdate = await _context.PatientFacilityMovements.FirstOrDefaultAsync(
+                    x => x.MovementId.Equals(movement.MovementId));
 
-            if (patientFacilityMovementToUpdate == null)
+            if (movementToUpdate == null)
             {
                 return new OutputResponse
                 {
@@ -90,10 +124,8 @@ namespace Thandizo.Patients.BLL.Services
             }
 
             //update details
-            patientFacilityMovementToUpdate.PatientId = patientFacilityMovement.PatientId;
-            patientFacilityMovementToUpdate.FromDataCenterId = patientFacilityMovement.FromDataCenterId;
-            patientFacilityMovementToUpdate.ToDataCenterId = patientFacilityMovement.ToDataCenterId;
-            patientFacilityMovementToUpdate.MovementDate = patientFacilityMovement.MovementDate;
+            movementToUpdate.FromDataCenterId = movement.FromDataCenterId;
+            movementToUpdate.ToDataCenterId = movement.ToDataCenterId;
 
             await _context.SaveChangesAsync();
 
