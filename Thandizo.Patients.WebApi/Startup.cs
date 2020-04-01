@@ -33,7 +33,7 @@ namespace Thandizo.Patients.WebApi
                     Version = "v1",
                     Title = "Thandizo Patients API",
                     Description = "Patients API for Thandizo platform",
-                    Contact = new Microsoft.OpenApi.Models.OpenApiContact { Name = "COVID-19 Malawi Tech Response", Email = "thandizo.mw@gmail.com", Url = new Uri("http://www.angledimension.com") }
+                    Contact = new Microsoft.OpenApi.Models.OpenApiContact { Name = "COVID-19 Malawi Tech Response", Email = "thandizo.mw@gmail.com", Url = new Uri("https://www.thandizo.mw") }
                 });
                 c.IncludeXmlComments(GetXmlCommentsPath());
             });
