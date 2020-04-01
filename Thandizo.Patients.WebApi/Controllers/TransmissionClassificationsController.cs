@@ -47,6 +47,7 @@ namespace Thandizo.Patients.WebApi.Controllers
         }
 
         [HttpPost("Add")]
+        [ValidateModelState]
         [CatchException(MessageHelper.AddNewError)]
         public async Task<IActionResult> Add([FromBody]TransmissionClassificationDTO classification)
         {
@@ -60,6 +61,7 @@ namespace Thandizo.Patients.WebApi.Controllers
         }
 
         [HttpPut("Update")]
+        [ValidateModelState]
         [CatchException(MessageHelper.UpdateError)]
         public async Task<IActionResult> Update([FromBody]TransmissionClassificationDTO classification)
         {

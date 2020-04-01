@@ -6,10 +6,10 @@ namespace Thandizo.Patients.BLL.Services
 {
     public interface IPatientLocationMovementService
     {
-        Task<OutputResponse> Add(PatientLocationMovementDTO patientLocationMovement);
+        Task<OutputResponse> Add(PatientLocationMovementDTO movement);
         Task<OutputResponse> Get();
         Task<OutputResponse> Get(long movementId);
         Task<OutputResponse> GetByPatient(long patientId);
-        Task<OutputResponse> Update(PatientLocationMovementDTO patientLocationMovement);
+        Task<OutputResponse> Update(PatientLocationMovementDTO movement);
     }
 }

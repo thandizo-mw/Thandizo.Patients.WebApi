@@ -8,6 +8,7 @@ using Thandizo.ApiExtensions.General;
 using Thandizo.DAL.Models;
 using Thandizo.DataModels.General;
 using Thandizo.DataModels.Patients;
+using Thandizo.DataModels.Patients.Responses;
 
 namespace Thandizo.Patients.BLL.Services
 {
@@ -22,38 +23,130 @@ namespace Thandizo.Patients.BLL.Services
 
         public async Task<OutputResponse> GetByPhoneNumber(string phoneNumber)
         {
-            var patient = await _context.Patients.FirstOrDefaultAsync(x => x.PhoneNumber.Equals(phoneNumber));
-            var mappedPatient = new AutoMapperHelper<DAL.Models.Patients, PatientDTO>().MapToObject(patient);
+            var patient = await _context.Patients.Where(x => x.PhoneNumber.Equals(phoneNumber))
+                .Select(x => new PatientResponse
+                {
+                    ClassificationId = x.ClassificationId,
+                    ClassificationName = x.Classification.ClassificationName,
+                    CreatedBy = x.CreatedBy,
+                    DataCenterId = x.DataCenterId,
+                    DateCreated = x.DateCreated,
+                    DateModified = x.DateModified,
+                    DateOfBirth = x.DateOfBirth,
+                    DistrictCode = x.DistrictCode,
+                    DistrictName = x.DistrictCodeNavigation.DistrictName,
+                    EmailAddress = x.EmailAddress,
+                    FirstName = x.FirstName,
+                    Gender = x.Gender,
+                    HomeAddress = x.HomeAddress,
+                    IdentificationNumber = x.IdentificationNumber,
+                    IdentificationTypeId = x.IdentificationTypeId,
+                    IdentitificationTypeName = x.IdentificationType.Description,
+                    LastName = x.LastName,
+                    Latitude = x.Latitude,
+                    Longitude = x.Longitude,
+                    ModifiedBy = x.ModifiedBy,
+                    NationalityCode = x.NationalityCode,
+                    NationalityName = x.NationalityCodeNavigation.NationalityName,
+                    OtherNames = x.OtherNames,
+                    PatientId = x.PatientId,
+                    PatientStatusId = x.PatientStatusId,
+                    PatientStatusName = x.PatientStatus.PatientStatusName,
+                    PhoneNumber = x.PhoneNumber,
+                    PhysicalAddress = x.PhysicalAddress,
+                    RowAction = x.RowAction
+                }).FirstOrDefaultAsync();
 
             return new OutputResponse
             {
                 IsErrorOccured = false,
-                Result = mappedPatient
+                Result = patient
             };
         }
 
         public async Task<OutputResponse> Get(long patientId)
         {
-            var patient = await _context.Patients.FirstOrDefaultAsync(x => x.PatientId.Equals(patientId));
-            var mappedPatient = new AutoMapperHelper<DAL.Models.Patients, PatientDTO>().MapToObject(patient);
+            var patient = await _context.Patients.Where(x => x.PatientId.Equals(patientId))
+                .Select(x => new PatientResponse
+                {
+                    ClassificationId = x.ClassificationId,
+                    ClassificationName = x.Classification.ClassificationName,
+                    CreatedBy = x.CreatedBy,
+                    DataCenterId = x.DataCenterId,
+                    DateCreated = x.DateCreated,
+                    DateModified = x.DateModified,
+                    DateOfBirth = x.DateOfBirth,
+                    DistrictCode = x.DistrictCode,
+                    DistrictName = x.DistrictCodeNavigation.DistrictName,
+                    EmailAddress = x.EmailAddress,
+                    FirstName = x.FirstName,
+                    Gender = x.Gender,
+                    HomeAddress = x.HomeAddress,
+                    IdentificationNumber = x.IdentificationNumber,
+                    IdentificationTypeId = x.IdentificationTypeId,
+                    IdentitificationTypeName = x.IdentificationType.Description,
+                    LastName = x.LastName,
+                    Latitude = x.Latitude,
+                    Longitude = x.Longitude,
+                    ModifiedBy = x.ModifiedBy,
+                    NationalityCode = x.NationalityCode,
+                    NationalityName = x.NationalityCodeNavigation.NationalityName,
+                    OtherNames = x.OtherNames,
+                    PatientId = x.PatientId,
+                    PatientStatusId = x.PatientStatusId,
+                    PatientStatusName = x.PatientStatus.PatientStatusName,
+                    PhoneNumber = x.PhoneNumber,
+                    PhysicalAddress = x.PhysicalAddress,
+                    RowAction = x.RowAction
+                }).FirstOrDefaultAsync();
 
             return new OutputResponse
             {
                 IsErrorOccured = false,
-                Result = mappedPatient
+                Result = patient
             };
         }
 
         public async Task<OutputResponse> Get()
         {
-            var patients = await _context.Patients.OrderBy(x => x.FirstName).ToListAsync();
-
-            var mappedPatients = new AutoMapperHelper<DAL.Models.Patients, PatientDTO>().MapToList(patients);
+            var patients = await _context.Patients.OrderBy(x => x.FirstName)
+                .Select(x => new PatientResponse
+                {
+                    ClassificationId = x.ClassificationId,
+                    ClassificationName = x.Classification.ClassificationName,
+                    CreatedBy = x.CreatedBy,
+                    DataCenterId = x.DataCenterId,
+                    DateCreated = x.DateCreated,
+                    DateModified = x.DateModified,
+                    DateOfBirth = x.DateOfBirth,
+                    DistrictCode = x.DistrictCode,
+                    DistrictName = x.DistrictCodeNavigation.DistrictName,
+                    EmailAddress = x.EmailAddress,
+                    FirstName = x.FirstName,
+                    Gender = x.Gender,
+                    HomeAddress = x.HomeAddress,
+                    IdentificationNumber = x.IdentificationNumber,
+                    IdentificationTypeId = x.IdentificationTypeId,
+                    IdentitificationTypeName = x.IdentificationType.Description,
+                    LastName = x.LastName,
+                    Latitude = x.Latitude,
+                    Longitude = x.Longitude,
+                    ModifiedBy = x.ModifiedBy,
+                    NationalityCode = x.NationalityCode,
+                    NationalityName = x.NationalityCodeNavigation.NationalityName,
+                    OtherNames = x.OtherNames,
+                    PatientId = x.PatientId,
+                    PatientStatusId = x.PatientStatusId,
+                    PatientStatusName = x.PatientStatus.PatientStatusName,
+                    PhoneNumber = x.PhoneNumber,
+                    PhysicalAddress = x.PhysicalAddress,
+                    RowAction = x.RowAction
+                }).ToListAsync();
 
             return new OutputResponse
             {
                 IsErrorOccured = false,
-                Result = mappedPatients
+                Result = patients
             };
         }
 
