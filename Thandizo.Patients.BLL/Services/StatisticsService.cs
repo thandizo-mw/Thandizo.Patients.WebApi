@@ -23,14 +23,23 @@ namespace Thandizo.Patients.BLL.Services
                                     join d in _context.Districts on p.DistrictCode equals d.DistrictCode
                                     join r in _context.Regions on d.RegionId equals r.RegionId
                                     join s in _context.PatientStatuses on p.PatientStatusId equals s.PatientStatusId
-                                    group p by new { d.DistrictName, s.PatientStatusName, r.RegionName } into ds
+                                    group p by new
+                                    {
+                                        d.DistrictName,
+                                        s.PatientStatusName,
+                                        r.RegionName,
+                                        d.Latitude,
+                                        d.Longitude
+                                    } into ds
                                     orderby ds.Key.PatientStatusName
                                     select new DistrictStatisticsDTO
                                     {
                                         TotalNumberOfPatients = ds.Count(),
                                         DistrictName = ds.Key.DistrictName,
                                         PatientStatusName = ds.Key.PatientStatusName,
-                                        RegionName = ds.Key.RegionName
+                                        RegionName = ds.Key.RegionName,
+                                        Longitude = ds.Key.Longitude,
+                                        Latitude = ds.Key.Latitude
                                     }).ToListAsync();
 
             return new OutputResponse
@@ -46,13 +55,21 @@ namespace Thandizo.Patients.BLL.Services
                                     join d in _context.Districts on p.DistrictCode equals d.DistrictCode
                                     join r in _context.Regions on d.RegionId equals r.RegionId
                                     join s in _context.PatientStatuses on p.PatientStatusId equals s.PatientStatusId
-                                    group p by new { s.PatientStatusName, r.RegionName } into ds
+                                    group p by new
+                                    {
+                                        s.PatientStatusName,
+                                        r.RegionName,
+                                        r.Latitude,
+                                        r.Longitude
+                                    } into ds
                                     orderby ds.Key.PatientStatusName
                                     select new RegionalStatisticsDTO
                                     {
                                         TotalNumberOfPatients = ds.Count(),
                                         PatientStatusName = ds.Key.PatientStatusName,
-                                        RegionName = ds.Key.RegionName
+                                        RegionName = ds.Key.RegionName,
+                                        Longitude = ds.Key.Longitude,
+                                        Latitude = ds.Key.Latitude
                                     }).ToListAsync();
 
             return new OutputResponse
