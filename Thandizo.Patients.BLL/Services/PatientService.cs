@@ -158,6 +158,20 @@ namespace Thandizo.Patients.BLL.Services
                 mappedPatient.RowAction = "I";
                 mappedPatient.DateCreated = DateTime.UtcNow.AddHours(2);
 
+                //if its not data entry (DE), it implies that is self-registration that requires
+                //to be confirmed before it becomes a case to avoid bogus reporting
+                //and also, set for default values for registration
+                if (!mappedPatient.SourceId.Equals("DE"))
+                {
+                    mappedPatient.IsConfirmed = false;
+
+                    //default mappings
+                    var registrationMapping = await _context.RegistrationMappings.FirstOrDefaultAsync();
+                    mappedPatient.PatientStatusId = registrationMapping.PatientStatusId;
+                    mappedPatient.DataCenterId = registrationMapping.DataCenterId;
+                    mappedPatient.ClassificationId = registrationMapping.ClassificationId;
+                }                
+
                 var addedPatient = await _context.Patients.AddAsync(mappedPatient);
                 await _context.SaveChangesAsync();
 
