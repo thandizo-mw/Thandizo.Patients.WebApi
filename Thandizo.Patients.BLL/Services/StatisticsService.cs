@@ -23,6 +23,7 @@ namespace Thandizo.Patients.BLL.Services
                                     join d in _context.Districts on p.DistrictCode equals d.DistrictCode
                                     join r in _context.Regions on d.RegionId equals r.RegionId
                                     join s in _context.PatientStatuses on p.PatientStatusId equals s.PatientStatusId
+                                    where p.IsConfirmed == true
                                     group p by new
                                     {
                                         d.DistrictName,
@@ -55,6 +56,7 @@ namespace Thandizo.Patients.BLL.Services
                                     join d in _context.Districts on p.DistrictCode equals d.DistrictCode
                                     join r in _context.Regions on d.RegionId equals r.RegionId
                                     join s in _context.PatientStatuses on p.PatientStatusId equals s.PatientStatusId
+                                    where p.IsConfirmed == true
                                     group p by new
                                     {
                                         s.PatientStatusName,
@@ -85,6 +87,7 @@ namespace Thandizo.Patients.BLL.Services
                                     join d in _context.Districts on p.DistrictCode equals d.DistrictCode
                                     join r in _context.Regions on d.RegionId equals r.RegionId
                                     join s in _context.PatientStatuses on p.PatientStatusId equals s.PatientStatusId
+                                    where p.IsConfirmed == true
                                     group p by new { s.PatientStatusName } into ds
                                     orderby ds.Key.PatientStatusName
                                     select new NationalStatisticsDTO
