@@ -161,7 +161,7 @@ namespace Thandizo.Patients.BLL.Services
                 //if its not data entry (DE), it implies that is self-registration that requires
                 //to be confirmed before it becomes a case to avoid bogus reporting
                 //and also, set for default values for registration
-                if (!mappedPatient.SourceId.Equals("DE"))
+                if (!mappedPatient.SourceId.ToUpper().Equals("DE"))
                 {
                     mappedPatient.IsConfirmed = false;
 
