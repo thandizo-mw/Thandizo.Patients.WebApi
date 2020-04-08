@@ -60,7 +60,7 @@ namespace Thandizo.Patients.WebApi
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Thandizo Khusa API V1");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Thandizo Patient API V1");
             });
             app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod());
             app.UseForwardedHeaders(new ForwardedHeadersOptions
