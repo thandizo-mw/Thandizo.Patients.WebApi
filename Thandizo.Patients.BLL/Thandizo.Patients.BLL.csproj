@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Thandizo.ApiExtensions" Version="1.0.0.4" />
+    <PackageReference Include="Thandizo.ApiExtensions" Version="1.0.0.5" />
     <PackageReference Include="Thandizo.DAL" Version="1.0.0.8" />
     <PackageReference Include="Thandizo.DataModels" Version="1.0.1.6" />
   </ItemGroup>

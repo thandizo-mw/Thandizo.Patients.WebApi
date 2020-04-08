@@ -181,7 +181,7 @@ namespace Thandizo.Patients.BLL.Services
                     DateCreated = DateTime.UtcNow.AddHours(2),
                     DateReported = DateTime.UtcNow.AddHours(2).Date,
                     PatientId = addedPatient.Entity.PatientId,
-                    PatientStatusId = patient.PatientStatusId
+                    PatientStatusId = mappedPatient.PatientStatusId
                 };
                 await _context.PatientHistory.AddAsync(patientHistory);
                 await _context.SaveChangesAsync();
