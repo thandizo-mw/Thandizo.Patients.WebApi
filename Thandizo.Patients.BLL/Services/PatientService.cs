@@ -1,12 +1,16 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Transactions;
 using Thandizo.ApiExtensions.DataMapping;
 using Thandizo.ApiExtensions.General;
 using Thandizo.DAL.Models;
+using Thandizo.DataModels.Contracts;
 using Thandizo.DataModels.General;
+using Thandizo.DataModels.Messaging;
 using Thandizo.DataModels.Patients;
 using Thandizo.DataModels.Patients.Responses;
 
@@ -14,10 +18,14 @@ namespace Thandizo.Patients.BLL.Services
 {
     public class PatientService : IPatientService
     {
+        private readonly IBusControl _bus;
         private readonly thandizoContext _context;
 
-        public PatientService(thandizoContext context)
+        public PatientService(thandizoContext context, IBusControl bus)
         {
+
+            _bus = bus;
+
             _context = context;
         }
 
@@ -159,7 +167,7 @@ namespace Thandizo.Patients.BLL.Services
             };
         }
 
-        public async Task<OutputResponse> Add(PatientDTO patient)
+        public async Task<OutputResponse> Add(PatientDTO patient, string emailQueueAddress, string smsQueueAddress)
         {
             using (TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
@@ -193,7 +201,31 @@ namespace Thandizo.Patients.BLL.Services
                     PatientStatusId = mappedPatient.PatientStatusId
                 };
                 await _context.PatientHistory.AddAsync(patientHistory);
+
+                var smsEndpoint = await _bus.GetSendEndpoint(new Uri(smsQueueAddress));
+
+                var phoneNumbers = new List<string>();
+                var responseTeamMappings = _context.ResponseTeamMappings.Include("TeamMember").Where(x => x.DistrictCode.Equals(patient.DistrictCode));
+
+                foreach (var responseTeam in responseTeamMappings)
+                {
+                    var phoneNumber = responseTeam.TeamMember.PhoneNumber;
+                    
+                    if (!string.IsNullOrEmpty(phoneNumber))
+                    {
+                        phoneNumbers.Add(phoneNumber);
+                    }
+                }
                 await _context.SaveChangesAsync();
+                if (phoneNumbers.Any())
+                {
+                    await smsEndpoint.Send(new MessageModelRequest(new MessageModel
+                    {
+                        SourceAddress = "Thandizo",
+                        DestinationRecipients = phoneNumbers,
+                        MessageBody = $"A new patient {patient.FirstName} {patient.LastName} has self registered on the platform. Login to the web portal for more details"
+                    }));
+                }
 
                 scope.Complete();
             }

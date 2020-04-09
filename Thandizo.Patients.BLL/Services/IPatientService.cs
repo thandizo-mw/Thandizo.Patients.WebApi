@@ -6,7 +6,7 @@ namespace Thandizo.Patients.BLL.Services
 {
     public interface IPatientService
     {
-        Task<OutputResponse> Add(PatientDTO patient);
+        Task<OutputResponse> Add(PatientDTO patient, string emailQueueAddress = "", string smsQueueAddress = "");
         Task<OutputResponse> Get();
         Task<OutputResponse> Get(long patientId);
         Task<OutputResponse> Update(PatientDTO patient);
