@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using System.Threading.Tasks;
 using Thandizo.ApiExtensions.Filters;
 using Thandizo.ApiExtensions.General;
@@ -11,12 +12,15 @@ namespace Thandizo.Patients.WebApi.Controllers
     [ApiController]
     public class PatientsController : ControllerBase
     {
-        IPatientService _service;
+        private readonly IPatientService _service;
+        private readonly IConfiguration _configuration;
 
-        public PatientsController(IPatientService service)
+        public PatientsController(IPatientService service, IConfiguration configuration)
         {
             _service = service;
+            _configuration = configuration;
         }
+
 
         [HttpGet("GetByPhoneNumber")]
         [CatchException(MessageHelper.GetItemError)]
@@ -65,7 +69,10 @@ namespace Thandizo.Patients.WebApi.Controllers
         [CatchException(MessageHelper.AddNewError)]
         public async Task<IActionResult> Add([FromBody]PatientDTO patient)
         {
-            var outputHandler = await _service.Add(patient);
+            
+            var smsQueueAddress = string.Concat(_configuration["RabbitMQHost"], "/", _configuration["SmsQueue"]);
+            var outputHandler = await _service.Add(patient, smsQueueAddress: smsQueueAddress);
+
             if (outputHandler.IsErrorOccured)
             {
                 return BadRequest(outputHandler.Message);
