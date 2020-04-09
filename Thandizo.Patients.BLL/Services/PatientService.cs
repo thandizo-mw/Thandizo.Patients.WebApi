@@ -203,17 +203,25 @@ namespace Thandizo.Patients.BLL.Services
                 await _context.PatientHistory.AddAsync(patientHistory);
 
                 var smsEndpoint = await _bus.GetSendEndpoint(new Uri(smsQueueAddress));
+                var emailEndpoint = await _bus.GetSendEndpoint(new Uri(emailQueueAddress));
 
                 var phoneNumbers = new List<string>();
+                var emailAddresses = new List<string>();
                 var responseTeamMappings = _context.ResponseTeamMappings.Include("TeamMember").Where(x => x.DistrictCode.Equals(patient.DistrictCode));
 
                 foreach (var responseTeam in responseTeamMappings)
                 {
                     var phoneNumber = responseTeam.TeamMember.PhoneNumber;
-                    
+                    var emailAddress = responseTeam.TeamMember.EmailAddress;
+
                     if (!string.IsNullOrEmpty(phoneNumber))
                     {
                         phoneNumbers.Add(phoneNumber);
+                    }
+
+                    if (!string.IsNullOrEmpty(emailAddress))
+                    {
+                        emailAddresses.Add(emailAddress);
                     }
                 }
                 await _context.SaveChangesAsync();
@@ -224,6 +232,20 @@ namespace Thandizo.Patients.BLL.Services
                         SourceAddress = "Thandizo",
                         DestinationRecipients = phoneNumbers,
                         MessageBody = $"A new patient {patient.FirstName} {patient.LastName} has self registered on the platform. Login to the web portal for more details"
+                    }));
+                }
+
+                if (emailAddresses.Any())
+                {
+                    await emailEndpoint.Send(new MessageModelRequest(new MessageModel
+                    {
+                        SourceAddress = "thandizo@angledimension.com",
+                        Subject = "New Patient",
+                        DestinationRecipients = emailAddresses,
+                        MessageBody = @$"<html>
+                                        <body>A new patient {patient.FirstName} {patient.LastName} has self registered on the platform. Login to the web portal for more details
+                                        </body>
+                                        </html>"
                     }));
                 }
 

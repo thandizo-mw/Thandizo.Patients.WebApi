@@ -71,7 +71,8 @@ namespace Thandizo.Patients.WebApi.Controllers
         {
             
             var smsQueueAddress = string.Concat(_configuration["RabbitMQHost"], "/", _configuration["SmsQueue"]);
-            var outputHandler = await _service.Add(patient, smsQueueAddress: smsQueueAddress);
+            var emailQueueAddress = string.Concat(_configuration["RabbitMQHost"], "/", _configuration["EmailQueue"]);
+            var outputHandler = await _service.Add(patient, emailQueueAddress: emailQueueAddress, smsQueueAddress: smsQueueAddress);
 
             if (outputHandler.IsErrorOccured)
             {
