@@ -54,7 +54,10 @@ namespace Thandizo.Patients.BLL.Services
                     PatientStatusName = x.PatientStatus.PatientStatusName,
                     PhoneNumber = x.PhoneNumber,
                     PhysicalAddress = x.PhysicalAddress,
-                    RowAction = x.RowAction
+                    RowAction = x.RowAction,
+                    IsConfirmed = x.IsConfirmed,
+                    SourceId = x.SourceId,
+                    SourceName = x.Source.SourceName
                 }).FirstOrDefaultAsync();
 
             return new OutputResponse
@@ -97,7 +100,10 @@ namespace Thandizo.Patients.BLL.Services
                     PatientStatusName = x.PatientStatus.PatientStatusName,
                     PhoneNumber = x.PhoneNumber,
                     PhysicalAddress = x.PhysicalAddress,
-                    RowAction = x.RowAction
+                    RowAction = x.RowAction,
+                    IsConfirmed = x.IsConfirmed,
+                    SourceId = x.SourceId,
+                    SourceName = x.Source.SourceName
                 }).FirstOrDefaultAsync();
 
             return new OutputResponse
@@ -140,7 +146,10 @@ namespace Thandizo.Patients.BLL.Services
                     PatientStatusName = x.PatientStatus.PatientStatusName,
                     PhoneNumber = x.PhoneNumber,
                     PhysicalAddress = x.PhysicalAddress,
-                    RowAction = x.RowAction
+                    RowAction = x.RowAction,
+                    IsConfirmed = x.IsConfirmed,
+                    SourceId = x.SourceId,
+                    SourceName = x.Source.SourceName
                 }).ToListAsync();
 
             return new OutputResponse
@@ -170,7 +179,7 @@ namespace Thandizo.Patients.BLL.Services
                     mappedPatient.PatientStatusId = registrationMapping.PatientStatusId;
                     mappedPatient.DataCenterId = registrationMapping.DataCenterId;
                     mappedPatient.ClassificationId = registrationMapping.ClassificationId;
-                }                
+                }
 
                 var addedPatient = await _context.Patients.AddAsync(mappedPatient);
                 await _context.SaveChangesAsync();
