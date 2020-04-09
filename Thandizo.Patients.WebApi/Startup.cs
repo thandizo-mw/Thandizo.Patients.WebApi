@@ -1,3 +1,4 @@
+using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -27,8 +28,21 @@ namespace Thandizo.Patients.WebApi
             services.AddControllers();
             services.AddEntityFrameworkNpgsql().AddDbContext<thandizoContext>(options =>
                         options.UseNpgsql(Configuration.GetConnectionString("DatabaseConnection")));
-            services.AddDomainServices();
+            
 
+            var bus = Bus.Factory.CreateUsingRabbitMq(configure =>
+            {
+                var host = configure.Host(new Uri(Configuration["RabbitMQHost"]), h =>
+                {
+                    h.Username(Configuration["RabbitMQUsername"]);
+                    h.Password(Configuration["RabbitMQPassword"]);
+                });
+            });
+            services.AddSingleton<IPublishEndpoint>(bus);
+            services.AddSingleton<ISendEndpointProvider>(bus);
+            services.AddSingleton(bus);
+            bus.Start();
+            services.AddDomainServices();
             //Disable automatic model state validation to provide cleaner error messages to avoid default complex object
             services.Configure<ApiBehaviorOptions>(options =>
             {
@@ -55,6 +69,8 @@ namespace Thandizo.Patients.WebApi
             {
                 app.UseDeveloperExceptionPage();
             }
+
+           
 
             //this is not needed in PRODUCTION but only in Hosted Testing Environment
             app.UseSwagger();
