@@ -15,6 +15,12 @@ namespace Thandizo.Patients.WebApi.Controllers
         private readonly IPatientService _service;
         private readonly IConfiguration _configuration;
 
+        public string SmsQueueAddress => 
+            string.Concat(_configuration["RabbitMQHost"], "/", _configuration["SmsQueue"]);
+
+        public string EmailQueueAddress =>
+            string.Concat(_configuration["RabbitMQHost"], "/", _configuration["EmailQueue"]);
+
         public PatientsController(IPatientService service, IConfiguration configuration)
         {
             _service = service;
@@ -69,16 +75,12 @@ namespace Thandizo.Patients.WebApi.Controllers
         [CatchException(MessageHelper.AddNewError)]
         public async Task<IActionResult> Add([FromBody]PatientDTO patient)
         {
-            
-            var smsQueueAddress = string.Concat(_configuration["RabbitMQHost"], "/", _configuration["SmsQueue"]);
-            var emailQueueAddress = string.Concat(_configuration["RabbitMQHost"], "/", _configuration["EmailQueue"]);
-            var outputHandler = await _service.Add(patient, emailQueueAddress: emailQueueAddress, smsQueueAddress: smsQueueAddress);
+            var outputHandler = await _service.Add(patient, EmailQueueAddress, SmsQueueAddress);
 
             if (outputHandler.IsErrorOccured)
             {
                 return BadRequest(outputHandler.Message);
             }
-
             return Created("", outputHandler.Message);
         }
 
