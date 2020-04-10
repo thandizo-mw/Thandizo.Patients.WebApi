@@ -1,5 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using MassTransit;
+using Microsoft.Extensions.DependencyInjection;
+using Thandizo.DAL.Models;
 using Thandizo.Patients.BLL.Services;
+using Thandizo.Patients.WebApi.Models;
 
 namespace Thandizo.Patients.WebApi
 {
@@ -10,9 +13,13 @@ namespace Thandizo.Patients.WebApi
         /// service descriptor
         /// </summary>
         /// <param name="services"></param>
-        public static IServiceCollection AddDomainServices(this IServiceCollection services)
+        public static IServiceCollection AddDomainServices(this IServiceCollection services, MessageTemplateModel messageTemplate)
         {
-            services.AddScoped<IPatientService, PatientService>();
+            services.AddScoped<IPatientService>(x => new PatientService(
+                x.GetRequiredService<thandizoContext>(),
+                x.GetRequiredService<IBusControl>(),
+                messageTemplate.EmailTemplateFilePath,
+                messageTemplate.SmsTemplateFilePath));
             services.AddScoped<IStatisticsService, StatisticsService>();
             services.AddScoped<IPatientDailyStatusService, PatientDailyStatusService>();
             services.AddScoped<IPatientHistoryService, PatientHistoryService>();
