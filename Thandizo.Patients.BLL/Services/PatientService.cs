@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -227,27 +228,38 @@ namespace Thandizo.Patients.BLL.Services
                     }
                 }
                 await _context.SaveChangesAsync();
-                if (phoneNumbers.Any())
+                var fullName = string.Concat(patient.FirstName, " ", patient.OtherNames, " ", patient.LastName);
+                
+               
+                if (phoneNumbers.Any() && File.Exists(_smsTemplate))
                 {
+                    var sms = await File.ReadAllTextAsync(_smsTemplate);
+                    sms = sms.Replace("{{FULL_NAME}}", fullName);
+                    sms = sms.Replace("{{PHONE_NUMBER}}", string.Concat("+", patient.PhoneNumber));
                     await smsEndpoint.Send(new MessageModelRequest(new MessageModel
                     {
                         SourceAddress = "Thandizo",
                         DestinationRecipients = phoneNumbers,
-                        MessageBody = $"A new patient {patient.FirstName} {patient.LastName} has self registered on the platform. Login to the web portal for more details"
+                        MessageBody = sms
                     }));
                 }
 
-                if (emailAddresses.Any())
+                if (emailAddresses.Any() && File.Exists(_emailTemplate))
                 {
+                    var district = await _context.Districts.FindAsync(patient.DistrictCode);
+                    var registrationSource = await _context.RegistrationSources.FindAsync(patient.SourceId);
+                    var email = await File.ReadAllTextAsync(_emailTemplate);
+                    email = email.Replace("{{REGISTRATION_SOURCE}}", registrationSource.SourceName);
+                    email = email.Replace("{{FULL_NAME}}", fullName);
+                    email = email.Replace("{{PHONE_NUMBER}}", string.Concat("+", patient.PhoneNumber));
+                    email = email.Replace("{{PHYSICAL_ADDRESS}}", patient.PhysicalAddress);
+                    email = email.Replace("{{DISTRICT_NAME}}", district.DistrictName);
                     await emailEndpoint.Send(new MessageModelRequest(new MessageModel
                     {
                         SourceAddress = "thandizo@angledimension.com",
-                        Subject = "New Patient",
+                        Subject = "COVID-19 patient registration",
                         DestinationRecipients = emailAddresses,
-                        MessageBody = @$"<html>
-                                        <body>A new patient {patient.FirstName} {patient.LastName} has self registered on the platform. Login to the web portal for more details
-                                        </body>
-                                        </html>"
+                        MessageBody = email
                     }));
                 }
 

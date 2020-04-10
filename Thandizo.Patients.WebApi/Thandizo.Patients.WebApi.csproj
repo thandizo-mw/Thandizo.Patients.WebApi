@@ -20,5 +20,14 @@
     <ProjectReference Include="..\Thandizo.Patients.BLL\Thandizo.Patients.BLL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="MessageTemplates\email_self_registration.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="MessageTemplates\sms_self_registration.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 
 </Project>
