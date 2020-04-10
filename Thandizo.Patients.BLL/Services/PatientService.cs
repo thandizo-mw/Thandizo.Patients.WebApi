@@ -20,13 +20,15 @@ namespace Thandizo.Patients.BLL.Services
     {
         private readonly IBusControl _bus;
         private readonly thandizoContext _context;
+        private readonly string _emailTemplate;
+        private readonly string _smsTemplate;
 
-        public PatientService(thandizoContext context, IBusControl bus)
+        public PatientService(thandizoContext context, IBusControl bus, string emailTemplate, string smsTemplate)
         {
-
             _bus = bus;
-
             _context = context;
+            _emailTemplate = emailTemplate;
+            _smsTemplate = smsTemplate;
         }
 
         public async Task<OutputResponse> GetByPhoneNumber(string phoneNumber)
