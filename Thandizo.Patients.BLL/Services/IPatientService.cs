@@ -11,5 +11,6 @@ namespace Thandizo.Patients.BLL.Services
         Task<OutputResponse> Get(long patientId);
         Task<OutputResponse> Update(PatientDTO patient);
         Task<OutputResponse> GetByPhoneNumber(string phoneNumber);
+        Task<OutputResponse> ConfirmPatient(long patientId);
     }
 }

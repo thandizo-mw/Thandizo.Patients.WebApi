@@ -314,5 +314,67 @@ namespace Thandizo.Patients.BLL.Services
                 Message = MessageHelper.UpdateSuccess
             };
         }
+
+        public async Task<OutputResponse> ConfirmPatient(long patientId)
+        {
+            var patientToUpdate = await _context.Patients.FirstOrDefaultAsync(x => x.PatientId.Equals(patientId));
+
+            if (patientToUpdate == null)
+            {
+                return new OutputResponse
+                {
+                    IsErrorOccured = true,
+                    Message = "Patient specified does not exist, update cancelled"
+                };
+            }
+
+            
+            using (TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                //update isConfirmed field
+                patientToUpdate.IsConfirmed = true;
+                patientToUpdate.DateModified = DateTime.UtcNow.AddHours(2);
+                patientToUpdate.RowAction = "U";
+                await _context.SaveChangesAsync();
+
+                var isFound = await _context.ConfirmedPatients.AnyAsync(x => x.PatientId == patientId);
+                if (isFound)
+                {
+                    return new OutputResponse
+                    {
+                        IsErrorOccured = true,
+                        Message = "Patient already confirmed, duplicates not allowed"
+                    };
+                }
+
+                var confirmedPatient = new ConfirmedPatientDTO
+                {
+                    PatientId = patientToUpdate.PatientId,
+                    FirstName = $"{patientToUpdate.FirstName} {patientToUpdate.OtherNames}",
+                    SurName = patientToUpdate.LastName,
+                    DateOfBirth = patientToUpdate.DateOfBirth,
+                    Gender = patientToUpdate.Gender,
+                    CountryCode = patientToUpdate.NationalityCode,
+                    IdentificationType = $"{patientToUpdate.IdentificationTypeId}",
+                    IdentificationNumber = patientToUpdate.IdentificationNumber,
+                    PhoneNumber = patientToUpdate.PhoneNumber
+                };
+
+                var mappedConfirmedPatient = new AutoMapperHelper<ConfirmedPatientDTO, ConfirmedPatients>().MapToObject(confirmedPatient);
+
+                await _context.ConfirmedPatients.AddAsync(mappedConfirmedPatient);
+                await _context.SaveChangesAsync();
+
+                scope.Complete();
+
+                return new OutputResponse
+                {
+                    IsErrorOccured = false,
+                    Message = MessageHelper.UpdateSuccess
+                };
+
+            }
+            
+        }
     }
 }
