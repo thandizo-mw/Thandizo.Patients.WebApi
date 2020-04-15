@@ -97,5 +97,18 @@ namespace Thandizo.Patients.WebApi.Controllers
 
             return Ok(outputHandler.Message);
         }
+
+        [HttpPut("ConfirmPatient")]
+        [CatchException(MessageHelper.UpdateError)]
+        public async Task<IActionResult> ConfirmPatient([FromBody]long patientId)
+        {
+            var outputHandler = await _service.ConfirmPatient(patientId);
+            if (outputHandler.IsErrorOccured)
+            {
+                return BadRequest(outputHandler.Message);
+            }
+
+            return Ok(outputHandler.Message);
+        }
     }
 }
