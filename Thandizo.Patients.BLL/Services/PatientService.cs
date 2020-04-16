@@ -229,8 +229,8 @@ namespace Thandizo.Patients.BLL.Services
                 }
                 await _context.SaveChangesAsync();
                 var fullName = string.Concat(patient.FirstName, " ", patient.OtherNames, " ", patient.LastName);
-                
-               
+
+
                 if (phoneNumbers.Any() && File.Exists(_smsTemplate))
                 {
                     var sms = await File.ReadAllTextAsync(_smsTemplate);
@@ -328,7 +328,7 @@ namespace Thandizo.Patients.BLL.Services
                 };
             }
 
-            
+
             using (TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 //update isConfirmed field
@@ -374,8 +374,7 @@ namespace Thandizo.Patients.BLL.Services
                 };
 
             }
-            
-        }
+
         }
 
         public async Task<OutputResponse> GetByResponseTeamMember(string phoneNumber, string valuesFilter)
@@ -391,44 +390,44 @@ namespace Thandizo.Patients.BLL.Services
             }
 
             var patients = await (from x in _context.Patients
-                                 join mp in _context.ResponseTeamMappings on x.DistrictCode equals mp.DistrictCode
-                                 where mp.TeamMember.PhoneNumber.Equals(phoneNumber)
-                                 && statusesList.Contains(x.IsConfirmed)
-                                 select new PatientResponse
-                                 {
-                                     ClassificationId = x.ClassificationId,
-                                     ClassificationName = x.Classification.ClassificationName,
-                                     CreatedBy = x.CreatedBy,
-                                     DataCenterId = x.DataCenterId,
-                                     DateCreated = x.DateCreated,
-                                     DateModified = x.DateModified,
-                                     DateOfBirth = x.DateOfBirth,
-                                     DistrictCode = x.DistrictCode,
-                                     DistrictName = x.DistrictCodeNavigation.DistrictName,
-                                     EmailAddress = x.EmailAddress,
-                                     FirstName = x.FirstName,
-                                     Gender = x.Gender,
-                                     HomeAddress = x.HomeAddress,
-                                     IdentificationNumber = x.IdentificationNumber,
-                                     IdentificationTypeId = x.IdentificationTypeId,
-                                     IdentitificationTypeName = x.IdentificationType.Description,
-                                     LastName = x.LastName,
-                                     Latitude = x.Latitude,
-                                     Longitude = x.Longitude,
-                                     ModifiedBy = x.ModifiedBy,
-                                     NationalityCode = x.NationalityCode,
-                                     NationalityName = x.NationalityCodeNavigation.NationalityName,
-                                     OtherNames = x.OtherNames,
-                                     PatientId = x.PatientId,
-                                     PatientStatusId = x.PatientStatusId,
-                                     PatientStatusName = x.PatientStatus.PatientStatusName,
-                                     PhoneNumber = x.PhoneNumber,
-                                     PhysicalAddress = x.PhysicalAddress,
-                                     RowAction = x.RowAction,
-                                     IsConfirmed = x.IsConfirmed,
-                                     SourceId = x.SourceId,
-                                     SourceName = x.Source.SourceName
-                                 }).ToListAsync();
+                                  join mp in _context.ResponseTeamMappings on x.DistrictCode equals mp.DistrictCode
+                                  where mp.TeamMember.PhoneNumber.Equals(phoneNumber)
+                                  && statusesList.Contains(x.IsConfirmed)
+                                  select new PatientResponse
+                                  {
+                                      ClassificationId = x.ClassificationId,
+                                      ClassificationName = x.Classification.ClassificationName,
+                                      CreatedBy = x.CreatedBy,
+                                      DataCenterId = x.DataCenterId,
+                                      DateCreated = x.DateCreated,
+                                      DateModified = x.DateModified,
+                                      DateOfBirth = x.DateOfBirth,
+                                      DistrictCode = x.DistrictCode,
+                                      DistrictName = x.DistrictCodeNavigation.DistrictName,
+                                      EmailAddress = x.EmailAddress,
+                                      FirstName = x.FirstName,
+                                      Gender = x.Gender,
+                                      HomeAddress = x.HomeAddress,
+                                      IdentificationNumber = x.IdentificationNumber,
+                                      IdentificationTypeId = x.IdentificationTypeId,
+                                      IdentitificationTypeName = x.IdentificationType.Description,
+                                      LastName = x.LastName,
+                                      Latitude = x.Latitude,
+                                      Longitude = x.Longitude,
+                                      ModifiedBy = x.ModifiedBy,
+                                      NationalityCode = x.NationalityCode,
+                                      NationalityName = x.NationalityCodeNavigation.NationalityName,
+                                      OtherNames = x.OtherNames,
+                                      PatientId = x.PatientId,
+                                      PatientStatusId = x.PatientStatusId,
+                                      PatientStatusName = x.PatientStatus.PatientStatusName,
+                                      PhoneNumber = x.PhoneNumber,
+                                      PhysicalAddress = x.PhysicalAddress,
+                                      RowAction = x.RowAction,
+                                      IsConfirmed = x.IsConfirmed,
+                                      SourceId = x.SourceId,
+                                      SourceName = x.Source.SourceName
+                                  }).ToListAsync();
 
             return new OutputResponse
             {
