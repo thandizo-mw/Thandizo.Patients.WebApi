@@ -13,10 +13,20 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.1" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="5.2.1" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="5.2.1" />
+    <PackageReference Include="Thandizo.DataModels" Version="1.0.2.5" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Thandizo.Patients.BLL\Thandizo.Patients.BLL.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="MessageTemplates\email_self_registration.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="MessageTemplates\sms_self_registration.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 

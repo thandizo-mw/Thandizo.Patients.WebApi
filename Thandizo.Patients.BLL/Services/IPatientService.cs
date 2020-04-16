@@ -6,11 +6,12 @@ namespace Thandizo.Patients.BLL.Services
 {
     public interface IPatientService
     {
-        Task<OutputResponse> Add(PatientDTO patient);
+        Task<OutputResponse> Add(PatientDTO patient, string emailQueueAddress = "", string smsQueueAddress = "");
         Task<OutputResponse> Get();
         Task<OutputResponse> Get(long patientId);
         Task<OutputResponse> Update(PatientDTO patient);
         Task<OutputResponse> GetByPhoneNumber(string phoneNumber);
+        Task<OutputResponse> ConfirmPatient(long patientId);
         Task<OutputResponse> GetByResponseTeamMember(string phoneNumber, string valuesFilter);
     }
 }

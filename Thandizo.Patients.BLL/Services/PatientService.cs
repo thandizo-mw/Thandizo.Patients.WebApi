@@ -1,13 +1,17 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Transactions;
 using Thandizo.ApiExtensions.DataMapping;
 using Thandizo.ApiExtensions.General;
 using Thandizo.DAL.Models;
+using Thandizo.DataModels.Contracts;
 using Thandizo.DataModels.General;
+using Thandizo.DataModels.Messaging;
 using Thandizo.DataModels.Patients;
 using Thandizo.DataModels.Patients.Responses;
 
@@ -15,11 +19,17 @@ namespace Thandizo.Patients.BLL.Services
 {
     public class PatientService : IPatientService
     {
+        private readonly IBusControl _bus;
         private readonly thandizoContext _context;
+        private readonly string _emailTemplate;
+        private readonly string _smsTemplate;
 
-        public PatientService(thandizoContext context)
+        public PatientService(thandizoContext context, IBusControl bus, string emailTemplate, string smsTemplate)
         {
+            _bus = bus;
             _context = context;
+            _emailTemplate = emailTemplate;
+            _smsTemplate = smsTemplate;
         }
 
         public async Task<OutputResponse> GetByPhoneNumber(string phoneNumber)
@@ -160,7 +170,7 @@ namespace Thandizo.Patients.BLL.Services
             };
         }
 
-        public async Task<OutputResponse> Add(PatientDTO patient)
+        public async Task<OutputResponse> Add(PatientDTO patient, string emailQueueAddress, string smsQueueAddress)
         {
             using (TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
@@ -194,7 +204,64 @@ namespace Thandizo.Patients.BLL.Services
                     PatientStatusId = mappedPatient.PatientStatusId
                 };
                 await _context.PatientHistory.AddAsync(patientHistory);
+
+                var smsEndpoint = await _bus.GetSendEndpoint(new Uri(smsQueueAddress));
+                var emailEndpoint = await _bus.GetSendEndpoint(new Uri(emailQueueAddress));
+
+                var phoneNumbers = new List<string>();
+                var emailAddresses = new List<string>();
+                var responseTeamMappings = _context.ResponseTeamMappings.Include("TeamMember").Where(x => x.DistrictCode.Equals(patient.DistrictCode));
+
+                foreach (var responseTeam in responseTeamMappings)
+                {
+                    var phoneNumber = responseTeam.TeamMember.PhoneNumber;
+                    var emailAddress = responseTeam.TeamMember.EmailAddress;
+
+                    if (!string.IsNullOrEmpty(phoneNumber))
+                    {
+                        phoneNumbers.Add(phoneNumber);
+                    }
+
+                    if (!string.IsNullOrEmpty(emailAddress))
+                    {
+                        emailAddresses.Add(emailAddress);
+                    }
+                }
                 await _context.SaveChangesAsync();
+                var fullName = string.Concat(patient.FirstName, " ", patient.OtherNames, " ", patient.LastName);
+                
+               
+                if (phoneNumbers.Any() && File.Exists(_smsTemplate))
+                {
+                    var sms = await File.ReadAllTextAsync(_smsTemplate);
+                    sms = sms.Replace("{{FULL_NAME}}", fullName);
+                    sms = sms.Replace("{{PHONE_NUMBER}}", string.Concat("+", patient.PhoneNumber));
+                    await smsEndpoint.Send(new MessageModelRequest(new MessageModel
+                    {
+                        SourceAddress = "Thandizo",
+                        DestinationRecipients = phoneNumbers,
+                        MessageBody = sms
+                    }));
+                }
+
+                if (emailAddresses.Any() && File.Exists(_emailTemplate))
+                {
+                    var district = await _context.Districts.FindAsync(patient.DistrictCode);
+                    var registrationSource = await _context.RegistrationSources.FindAsync(patient.SourceId);
+                    var email = await File.ReadAllTextAsync(_emailTemplate);
+                    email = email.Replace("{{REGISTRATION_SOURCE}}", registrationSource.SourceName);
+                    email = email.Replace("{{FULL_NAME}}", fullName);
+                    email = email.Replace("{{PHONE_NUMBER}}", string.Concat("+", patient.PhoneNumber));
+                    email = email.Replace("{{PHYSICAL_ADDRESS}}", patient.PhysicalAddress);
+                    email = email.Replace("{{DISTRICT_NAME}}", district.DistrictName);
+                    await emailEndpoint.Send(new MessageModelRequest(new MessageModel
+                    {
+                        SourceAddress = "thandizo@angledimension.com",
+                        Subject = "COVID-19 patient registration",
+                        DestinationRecipients = emailAddresses,
+                        MessageBody = email
+                    }));
+                }
 
                 scope.Complete();
             }
@@ -246,6 +313,69 @@ namespace Thandizo.Patients.BLL.Services
                 IsErrorOccured = false,
                 Message = MessageHelper.UpdateSuccess
             };
+        }
+
+        public async Task<OutputResponse> ConfirmPatient(long patientId)
+        {
+            var patientToUpdate = await _context.Patients.FirstOrDefaultAsync(x => x.PatientId.Equals(patientId));
+
+            if (patientToUpdate == null)
+            {
+                return new OutputResponse
+                {
+                    IsErrorOccured = true,
+                    Message = "Patient specified does not exist, update cancelled"
+                };
+            }
+
+            
+            using (TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                //update isConfirmed field
+                patientToUpdate.IsConfirmed = true;
+                patientToUpdate.DateModified = DateTime.UtcNow.AddHours(2);
+                patientToUpdate.RowAction = "U";
+                await _context.SaveChangesAsync();
+
+                var isFound = await _context.ConfirmedPatients.AnyAsync(x => x.PatientId == patientId);
+                if (isFound)
+                {
+                    return new OutputResponse
+                    {
+                        IsErrorOccured = true,
+                        Message = "Patient already confirmed, duplicates not allowed"
+                    };
+                }
+
+                var confirmedPatient = new ConfirmedPatientDTO
+                {
+                    PatientId = patientToUpdate.PatientId,
+                    FirstName = $"{patientToUpdate.FirstName} {patientToUpdate.OtherNames}",
+                    SurName = patientToUpdate.LastName,
+                    DateOfBirth = patientToUpdate.DateOfBirth,
+                    Gender = patientToUpdate.Gender,
+                    CountryCode = patientToUpdate.NationalityCode,
+                    IdentificationType = $"{patientToUpdate.IdentificationTypeId}",
+                    IdentificationNumber = patientToUpdate.IdentificationNumber,
+                    PhoneNumber = patientToUpdate.PhoneNumber
+                };
+
+                var mappedConfirmedPatient = new AutoMapperHelper<ConfirmedPatientDTO, ConfirmedPatients>().MapToObject(confirmedPatient);
+
+                await _context.ConfirmedPatients.AddAsync(mappedConfirmedPatient);
+                await _context.SaveChangesAsync();
+
+                scope.Complete();
+
+                return new OutputResponse
+                {
+                    IsErrorOccured = false,
+                    Message = MessageHelper.UpdateSuccess
+                };
+
+            }
+            
+        }
         }
 
         public async Task<OutputResponse> GetByResponseTeamMember(string phoneNumber, string valuesFilter)

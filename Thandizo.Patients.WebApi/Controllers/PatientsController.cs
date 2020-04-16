@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using System.Threading.Tasks;
 using Thandizo.ApiExtensions.Filters;
 using Thandizo.ApiExtensions.General;
@@ -11,12 +12,21 @@ namespace Thandizo.Patients.WebApi.Controllers
     [ApiController]
     public class PatientsController : ControllerBase
     {
-        IPatientService _service;
+        private readonly IPatientService _service;
+        private readonly IConfiguration _configuration;
 
-        public PatientsController(IPatientService service)
+        public string SmsQueueAddress => 
+            string.Concat(_configuration["RabbitMQHost"], "/", _configuration["SmsQueue"]);
+
+        public string EmailQueueAddress =>
+            string.Concat(_configuration["RabbitMQHost"], "/", _configuration["EmailQueue"]);
+
+        public PatientsController(IPatientService service, IConfiguration configuration)
         {
             _service = service;
+            _configuration = configuration;
         }
+
 
         [HttpGet("GetByPhoneNumber")]
         [CatchException(MessageHelper.GetItemError)]
@@ -65,12 +75,12 @@ namespace Thandizo.Patients.WebApi.Controllers
         [CatchException(MessageHelper.AddNewError)]
         public async Task<IActionResult> Add([FromBody]PatientDTO patient)
         {
-            var outputHandler = await _service.Add(patient);
+            var outputHandler = await _service.Add(patient, EmailQueueAddress, SmsQueueAddress);
+
             if (outputHandler.IsErrorOccured)
             {
                 return BadRequest(outputHandler.Message);
             }
-
             return Created("", outputHandler.Message);
         }
 
@@ -101,6 +111,19 @@ namespace Thandizo.Patients.WebApi.Controllers
             }
 
             return Ok(response.Result);
+        }
+
+        [HttpPut("ConfirmPatient")]
+        [CatchException(MessageHelper.UpdateError)]
+        public async Task<IActionResult> ConfirmPatient([FromBody]long patientId)
+        {
+            var outputHandler = await _service.ConfirmPatient(patientId);
+            if (outputHandler.IsErrorOccured)
+            {
+                return BadRequest(outputHandler.Message);
+            }
+
+            return Ok(outputHandler.Message);
         }
     }
 }

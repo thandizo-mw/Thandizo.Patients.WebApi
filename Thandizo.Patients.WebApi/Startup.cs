@@ -1,3 +1,4 @@
+using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -9,16 +10,19 @@ using Microsoft.Extensions.Hosting;
 using System;
 using System.IO;
 using Thandizo.DAL.Models;
+using Thandizo.Patients.WebApi.Models;
 
 namespace Thandizo.Patients.WebApi
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
             Configuration = configuration;
+            Environment = environment;
         }
 
+        public IWebHostEnvironment Environment { get; }
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -27,8 +31,25 @@ namespace Thandizo.Patients.WebApi
             services.AddControllers();
             services.AddEntityFrameworkNpgsql().AddDbContext<thandizoContext>(options =>
                         options.UseNpgsql(Configuration.GetConnectionString("DatabaseConnection")));
-            services.AddDomainServices();
+            var messageTemplate = new MessageTemplateModel
+            {
+                EmailTemplateFilePath = Path.Combine(Environment.ContentRootPath, "MessageTemplates", "email_self_registration.html"),
+                SmsTemplateFilePath = Path.Combine(Environment.ContentRootPath, "MessageTemplates", "sms_self_registration.txt")
+            };
 
+            var bus = Bus.Factory.CreateUsingRabbitMq(configure =>
+            {
+                var host = configure.Host(new Uri(Configuration["RabbitMQHost"]), h =>
+                {
+                    h.Username(Configuration["RabbitMQUsername"]);
+                    h.Password(Configuration["RabbitMQPassword"]);
+                });
+            });
+            services.AddSingleton<IPublishEndpoint>(bus);
+            services.AddSingleton<ISendEndpointProvider>(bus);
+            services.AddSingleton(bus);
+            bus.Start();
+            services.AddDomainServices(messageTemplate);
             //Disable automatic model state validation to provide cleaner error messages to avoid default complex object
             services.Configure<ApiBehaviorOptions>(options =>
             {
@@ -55,6 +76,8 @@ namespace Thandizo.Patients.WebApi
             {
                 app.UseDeveloperExceptionPage();
             }
+
+
 
             //this is not needed in PRODUCTION but only in Hosted Testing Environment
             app.UseSwagger();
