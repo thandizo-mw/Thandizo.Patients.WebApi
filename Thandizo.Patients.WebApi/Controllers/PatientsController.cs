@@ -87,5 +87,20 @@ namespace Thandizo.Patients.WebApi.Controllers
 
             return Ok(outputHandler.Message);
         }
+
+        [HttpGet("GetByResponseTeamMember")]
+        [CatchException(MessageHelper.GetListError)]
+        public async Task<IActionResult> GetByResponseTeamMember([FromQuery] string phoneNumber,
+            [FromQuery]string valuesFilter)
+        {
+            var response = await _service.GetByResponseTeamMember(phoneNumber, valuesFilter);
+
+            if (response.IsErrorOccured)
+            {
+                return BadRequest(response.Message);
+            }
+
+            return Ok(response.Result);
+        }
     }
 }
