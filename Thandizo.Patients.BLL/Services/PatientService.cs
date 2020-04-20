@@ -320,6 +320,10 @@ namespace Thandizo.Patients.BLL.Services
             patientToUpdate.PatientStatusId = patient.PatientStatusId;
             patientToUpdate.PhoneNumber = patient.PhoneNumber;
             patientToUpdate.PhysicalAddress = patient.PhysicalAddress;
+            patientToUpdate.NextOfKinPhoneNumber = patient.NextOfKinPhoneNumber;
+            patientToUpdate.NextOfKinLastName = patient.NextOfKinLastName;
+            patientToUpdate.NextOfKinFirstName = patient.NextOfKinFirstName;
+            patientToUpdate.ResidenceCountryCode = patient.ResidenceCountryCode;
             patientToUpdate.RowAction = "U";
             patientToUpdate.ModifiedBy = patient.CreatedBy;
             patientToUpdate.DateModified = DateTime.UtcNow.AddHours(2);
