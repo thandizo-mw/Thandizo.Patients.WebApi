@@ -68,7 +68,13 @@ namespace Thandizo.Patients.BLL.Services
                     RowAction = x.RowAction,
                     IsConfirmed = x.IsConfirmed,
                     SourceId = x.SourceId,
-                    SourceName = x.Source.SourceName
+                    SourceName = x.Source.SourceName,
+                    IsSelfRegistered = x.IsSelfRegistered,
+                    NextOfKinFirstName = x.NextOfKinFirstName,
+                    NextOfKinLastName = x.NextOfKinLastName,
+                    NextOfKinPhoneNumber = x.NextOfKinPhoneNumber,
+                    ResidenceCountryCode = x.ResidenceCountryCode,
+                    CountryName = x.ResidenceCountryCodeNavigation.CountryName
                 }).FirstOrDefaultAsync();
 
             return new OutputResponse
@@ -114,7 +120,13 @@ namespace Thandizo.Patients.BLL.Services
                     RowAction = x.RowAction,
                     IsConfirmed = x.IsConfirmed,
                     SourceId = x.SourceId,
-                    SourceName = x.Source.SourceName
+                    SourceName = x.Source.SourceName,
+                    IsSelfRegistered = x.IsSelfRegistered,
+                    NextOfKinFirstName = x.NextOfKinFirstName,
+                    NextOfKinLastName = x.NextOfKinLastName,
+                    NextOfKinPhoneNumber = x.NextOfKinPhoneNumber,
+                    ResidenceCountryCode = x.ResidenceCountryCode,
+                    CountryName = x.ResidenceCountryCodeNavigation.CountryName
                 }).FirstOrDefaultAsync();
 
             return new OutputResponse
@@ -160,7 +172,13 @@ namespace Thandizo.Patients.BLL.Services
                     RowAction = x.RowAction,
                     IsConfirmed = x.IsConfirmed,
                     SourceId = x.SourceId,
-                    SourceName = x.Source.SourceName
+                    SourceName = x.Source.SourceName,
+                    IsSelfRegistered = x.IsSelfRegistered,
+                    NextOfKinFirstName = x.NextOfKinFirstName,
+                    NextOfKinLastName = x.NextOfKinLastName,
+                    NextOfKinPhoneNumber = x.NextOfKinPhoneNumber,
+                    ResidenceCountryCode = x.ResidenceCountryCode,
+                    CountryName = x.ResidenceCountryCodeNavigation.CountryName
                 }).ToListAsync();
 
             return new OutputResponse
@@ -426,7 +444,13 @@ namespace Thandizo.Patients.BLL.Services
                                       RowAction = x.RowAction,
                                       IsConfirmed = x.IsConfirmed,
                                       SourceId = x.SourceId,
-                                      SourceName = x.Source.SourceName
+                                      SourceName = x.Source.SourceName,
+                                      IsSelfRegistered = x.IsSelfRegistered,
+                                      NextOfKinFirstName = x.NextOfKinFirstName,
+                                      NextOfKinLastName = x.NextOfKinLastName,
+                                      NextOfKinPhoneNumber = x.NextOfKinPhoneNumber,
+                                      ResidenceCountryCode = x.ResidenceCountryCode,
+                                      CountryName = x.ResidenceCountryCodeNavigation.CountryName
                                   }).ToListAsync();
 
             return new OutputResponse
