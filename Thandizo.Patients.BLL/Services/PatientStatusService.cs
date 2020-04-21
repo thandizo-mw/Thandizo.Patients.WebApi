@@ -86,6 +86,7 @@ namespace Thandizo.Patients.BLL.Services
 
             //update details
             patientStatusToUpdate.PatientStatusName = patientStatus.PatientStatusName;
+            patientStatusToUpdate.Severity = patientStatus.Severity;
             patientStatusToUpdate.RowAction = "U";
             patientStatusToUpdate.ModifiedBy = patientStatus.CreatedBy;
             patientStatusToUpdate.DateModified = DateTime.UtcNow.AddHours(2);
