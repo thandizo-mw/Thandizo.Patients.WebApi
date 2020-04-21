@@ -68,7 +68,13 @@ namespace Thandizo.Patients.BLL.Services
                     RowAction = x.RowAction,
                     IsConfirmed = x.IsConfirmed,
                     SourceId = x.SourceId,
-                    SourceName = x.Source.SourceName
+                    SourceName = x.Source.SourceName,
+                    IsSelfRegistered = x.IsSelfRegistered,
+                    NextOfKinFirstName = x.NextOfKinFirstName,
+                    NextOfKinLastName = x.NextOfKinLastName,
+                    NextOfKinPhoneNumber = x.NextOfKinPhoneNumber,
+                    ResidenceCountryCode = x.ResidenceCountryCode,
+                    CountryName = x.ResidenceCountryCodeNavigation.CountryName
                 }).FirstOrDefaultAsync();
 
             return new OutputResponse
@@ -114,7 +120,13 @@ namespace Thandizo.Patients.BLL.Services
                     RowAction = x.RowAction,
                     IsConfirmed = x.IsConfirmed,
                     SourceId = x.SourceId,
-                    SourceName = x.Source.SourceName
+                    SourceName = x.Source.SourceName,
+                    IsSelfRegistered = x.IsSelfRegistered,
+                    NextOfKinFirstName = x.NextOfKinFirstName,
+                    NextOfKinLastName = x.NextOfKinLastName,
+                    NextOfKinPhoneNumber = x.NextOfKinPhoneNumber,
+                    ResidenceCountryCode = x.ResidenceCountryCode,
+                    CountryName = x.ResidenceCountryCodeNavigation.CountryName
                 }).FirstOrDefaultAsync();
 
             return new OutputResponse
@@ -160,7 +172,13 @@ namespace Thandizo.Patients.BLL.Services
                     RowAction = x.RowAction,
                     IsConfirmed = x.IsConfirmed,
                     SourceId = x.SourceId,
-                    SourceName = x.Source.SourceName
+                    SourceName = x.Source.SourceName,
+                    IsSelfRegistered = x.IsSelfRegistered,
+                    NextOfKinFirstName = x.NextOfKinFirstName,
+                    NextOfKinLastName = x.NextOfKinLastName,
+                    NextOfKinPhoneNumber = x.NextOfKinPhoneNumber,
+                    ResidenceCountryCode = x.ResidenceCountryCode,
+                    CountryName = x.ResidenceCountryCodeNavigation.CountryName
                 }).ToListAsync();
 
             return new OutputResponse
@@ -302,6 +320,10 @@ namespace Thandizo.Patients.BLL.Services
             patientToUpdate.PatientStatusId = patient.PatientStatusId;
             patientToUpdate.PhoneNumber = patient.PhoneNumber;
             patientToUpdate.PhysicalAddress = patient.PhysicalAddress;
+            patientToUpdate.NextOfKinPhoneNumber = patient.NextOfKinPhoneNumber;
+            patientToUpdate.NextOfKinLastName = patient.NextOfKinLastName;
+            patientToUpdate.NextOfKinFirstName = patient.NextOfKinFirstName;
+            patientToUpdate.ResidenceCountryCode = patient.ResidenceCountryCode;
             patientToUpdate.RowAction = "U";
             patientToUpdate.ModifiedBy = patient.CreatedBy;
             patientToUpdate.DateModified = DateTime.UtcNow.AddHours(2);
@@ -426,7 +448,13 @@ namespace Thandizo.Patients.BLL.Services
                                       RowAction = x.RowAction,
                                       IsConfirmed = x.IsConfirmed,
                                       SourceId = x.SourceId,
-                                      SourceName = x.Source.SourceName
+                                      SourceName = x.Source.SourceName,
+                                      IsSelfRegistered = x.IsSelfRegistered,
+                                      NextOfKinFirstName = x.NextOfKinFirstName,
+                                      NextOfKinLastName = x.NextOfKinLastName,
+                                      NextOfKinPhoneNumber = x.NextOfKinPhoneNumber,
+                                      ResidenceCountryCode = x.ResidenceCountryCode,
+                                      CountryName = x.ResidenceCountryCodeNavigation.CountryName
                                   }).ToListAsync();
 
             return new OutputResponse
