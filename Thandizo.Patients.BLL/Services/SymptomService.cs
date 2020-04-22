@@ -86,6 +86,8 @@ namespace Thandizo.Patients.BLL.Services
 
             //update details
             symptomToUpdate.SymptomName = symptom.SymptomName;
+            symptomToUpdate.IsAvailableForRegistration = symptom.IsAvailableForRegistration;
+            symptomToUpdate.ExternalReferenceNumber = symptom.ExternalReferenceNumber;
             symptomToUpdate.RowAction = "U";
             symptomToUpdate.ModifiedBy = symptom.CreatedBy;
             symptomToUpdate.DateModified = DateTime.UtcNow.AddHours(2);
