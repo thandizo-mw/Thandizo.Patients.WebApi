@@ -13,7 +13,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.1" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="5.2.1" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="5.2.1" />
-    <PackageReference Include="Thandizo.DataModels" Version="1.0.2.9" />
+    <PackageReference Include="Thandizo.DataModels" Version="1.0.3" />
   </ItemGroup>
 
   <ItemGroup>
