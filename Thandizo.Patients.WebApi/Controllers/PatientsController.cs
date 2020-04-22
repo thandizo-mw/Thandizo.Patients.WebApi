@@ -73,9 +73,9 @@ namespace Thandizo.Patients.WebApi.Controllers
         [HttpPost("Add")]
         [ValidateModelState]
         [CatchException(MessageHelper.AddNewError)]
-        public async Task<IActionResult> Add([FromBody]PatientDTO patient)
+        public async Task<IActionResult> Add([FromBody]PatientRequest request)
         {
-            var outputHandler = await _service.Add(patient, EmailQueueAddress, SmsQueueAddress);
+            var outputHandler = await _service.Add(request, EmailQueueAddress, SmsQueueAddress);
 
             if (outputHandler.IsErrorOccured)
             {

@@ -34,7 +34,8 @@ namespace Thandizo.Patients.BLL.Services
 
         public async Task<OutputResponse> GetByPhoneNumber(string phoneNumber)
         {
-            var patient = await _context.Patients.Where(x => x.PhoneNumber.Equals(phoneNumber))
+            var patients = await _context.Patients.Where(x => x.PhoneNumber.Equals(phoneNumber))
+                .OrderBy(x => x.FirstName).ThenBy(x => x.LastName)
                 .Select(x => new PatientResponse
                 {
                     ClassificationId = x.ClassificationId,
@@ -75,12 +76,12 @@ namespace Thandizo.Patients.BLL.Services
                     NextOfKinPhoneNumber = x.NextOfKinPhoneNumber,
                     ResidenceCountryCode = x.ResidenceCountryCode,
                     CountryName = x.ResidenceCountryCodeNavigation.CountryName
-                }).FirstOrDefaultAsync();
+                }).ToListAsync();
 
             return new OutputResponse
             {
                 IsErrorOccured = false,
-                Result = patient
+                Result = patients
             };
         }
 
@@ -188,11 +189,11 @@ namespace Thandizo.Patients.BLL.Services
             };
         }
 
-        public async Task<OutputResponse> Add(PatientDTO patient, string emailQueueAddress, string smsQueueAddress)
+        public async Task<OutputResponse> Add(PatientRequest request, string emailQueueAddress, string smsQueueAddress)
         {
             using (TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
-                var mappedPatient = new AutoMapperHelper<PatientDTO, DAL.Models.Patients>().MapToObject(patient);
+                var mappedPatient = new AutoMapperHelper<PatientDTO, DAL.Models.Patients>().MapToObject(request.Patient);
                 mappedPatient.RowAction = "I";
                 mappedPatient.DateCreated = DateTime.UtcNow.AddHours(2);
 
@@ -215,7 +216,7 @@ namespace Thandizo.Patients.BLL.Services
 
                 var patientHistory = new PatientHistory
                 {
-                    CreatedBy = patient.CreatedBy,
+                    CreatedBy = request.Patient.CreatedBy,
                     DateCreated = DateTime.UtcNow.AddHours(2),
                     DateReported = DateTime.UtcNow.AddHours(2).Date,
                     PatientId = addedPatient.Entity.PatientId,
@@ -223,12 +224,23 @@ namespace Thandizo.Patients.BLL.Services
                 };
                 await _context.PatientHistory.AddAsync(patientHistory);
 
+                //add the specified symptoms
+                foreach (var status in request.PatientDailyStatuses)
+                {
+                    var mappedStatus = new AutoMapperHelper<PatientDailyStatusDTO, PatientDailyStatuses>().MapToObject(status);
+                    mappedStatus.DateCreated = DateTime.UtcNow.AddHours(2);
+                    mappedStatus.DateSubmitted = DateTime.Now.Date;
+
+                    await _context.PatientDailyStatuses.AddAsync(mappedStatus);
+                }
+
                 var smsEndpoint = await _bus.GetSendEndpoint(new Uri(smsQueueAddress));
                 var emailEndpoint = await _bus.GetSendEndpoint(new Uri(emailQueueAddress));
 
                 var phoneNumbers = new List<string>();
                 var emailAddresses = new List<string>();
-                var responseTeamMappings = _context.ResponseTeamMappings.Include("TeamMember").Where(x => x.DistrictCode.Equals(patient.DistrictCode));
+                var responseTeamMappings = _context.ResponseTeamMappings.Include("TeamMember")
+                    .Where(x => x.DistrictCode.Equals(request.Patient.DistrictCode));
 
                 foreach (var responseTeam in responseTeamMappings)
                 {
@@ -246,14 +258,14 @@ namespace Thandizo.Patients.BLL.Services
                     }
                 }
                 await _context.SaveChangesAsync();
-                var fullName = string.Concat(patient.FirstName, " ", patient.OtherNames, " ", patient.LastName);
+                var fullName = string.Concat(request.Patient.FirstName, " ", request.Patient.OtherNames, " ", request.Patient.LastName);
 
 
                 if (phoneNumbers.Any() && File.Exists(_smsTemplate))
                 {
                     var sms = await File.ReadAllTextAsync(_smsTemplate);
                     sms = sms.Replace("{{FULL_NAME}}", fullName);
-                    sms = sms.Replace("{{PHONE_NUMBER}}", string.Concat("+", patient.PhoneNumber));
+                    sms = sms.Replace("{{PHONE_NUMBER}}", string.Concat("+", request.Patient.PhoneNumber));
                     await smsEndpoint.Send(new MessageModelRequest(new MessageModel
                     {
                         SourceAddress = "Thandizo",
@@ -264,18 +276,18 @@ namespace Thandizo.Patients.BLL.Services
 
                 if (emailAddresses.Any() && File.Exists(_emailTemplate))
                 {
-                    var district = await _context.Districts.FindAsync(patient.DistrictCode);
-                    var registrationSource = await _context.RegistrationSources.FindAsync(patient.SourceId);
+                    var district = await _context.Districts.FindAsync(request.Patient.DistrictCode);
+                    var registrationSource = await _context.RegistrationSources.FindAsync(request.Patient.SourceId);
                     var email = await File.ReadAllTextAsync(_emailTemplate);
                     email = email.Replace("{{REGISTRATION_SOURCE}}", registrationSource.SourceName);
                     email = email.Replace("{{FULL_NAME}}", fullName);
-                    email = email.Replace("{{PHONE_NUMBER}}", string.Concat("+", patient.PhoneNumber));
-                    email = email.Replace("{{PHYSICAL_ADDRESS}}", patient.PhysicalAddress);
+                    email = email.Replace("{{PHONE_NUMBER}}", string.Concat("+", request.Patient.PhoneNumber));
+                    email = email.Replace("{{PHYSICAL_ADDRESS}}", request.Patient.PhysicalAddress);
                     email = email.Replace("{{DISTRICT_NAME}}", district.DistrictName);
                     await emailEndpoint.Send(new MessageModelRequest(new MessageModel
                     {
                         SourceAddress = "thandizo@angledimension.com",
-                        Subject = "COVID-19 patient registration",
+                        Subject = "COVID-19 Patient Registration",
                         DestinationRecipients = emailAddresses,
                         MessageBody = email
                     }));
