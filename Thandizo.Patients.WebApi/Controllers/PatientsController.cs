@@ -27,7 +27,6 @@ namespace Thandizo.Patients.WebApi.Controllers
             _configuration = configuration;
         }
 
-
         [HttpGet("GetByPhoneNumber")]
         [CatchException(MessageHelper.GetItemError)]
         public async Task<IActionResult> GetByPhoneNumber([FromQuery] string phoneNumber)

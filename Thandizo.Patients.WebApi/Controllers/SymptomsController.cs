@@ -86,5 +86,19 @@ namespace Thandizo.Patients.WebApi.Controllers
 
             return Ok(outputHandler.Message);
         }
+
+        [HttpGet("GetByStatus")]
+        [CatchException(MessageHelper.GetListError)]
+        public async Task<IActionResult> GetByStatus([FromQuery]string valuesFilter)
+        {
+            var response = await _service.Get(valuesFilter);
+
+            if (response.IsErrorOccured)
+            {
+                return BadRequest(response.Message);
+            }
+
+            return Ok(response.Result);
+        }
     }
 }

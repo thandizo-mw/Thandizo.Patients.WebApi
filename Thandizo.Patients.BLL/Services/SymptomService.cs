@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Thandizo.ApiExtensions.DataMapping;
@@ -35,6 +36,29 @@ namespace Thandizo.Patients.BLL.Services
         public async Task<OutputResponse> Get()
         {
             var symptoms = await _context.PatientSymptoms.OrderBy(x => x.SymptomName).ToListAsync();
+
+            var mappedSymptoms = new AutoMapperHelper<PatientSymptoms, PatientSymptomDTO>().MapToList(symptoms);
+
+            return new OutputResponse
+            {
+                IsErrorOccured = false,
+                Result = mappedSymptoms
+            };
+        }
+
+        public async Task<OutputResponse> Get(string valuesFilter)
+        {
+            valuesFilter = string.IsNullOrEmpty(valuesFilter) ? "true,false" : valuesFilter;
+            var statuses = valuesFilter.Split(char.Parse(","));
+
+            List<bool> statusesList = new List<bool>();
+            for (int i = 0; i < statuses.Length; i++)
+            {
+                statusesList.Add(bool.Parse(statuses[i]));
+            }
+
+            var symptoms = await _context.PatientSymptoms.Where(x=> statusesList.Contains(x.IsAvailableForRegistration))
+                .OrderBy(x => x.SymptomName).ToListAsync();
 
             var mappedSymptoms = new AutoMapperHelper<PatientSymptoms, PatientSymptomDTO>().MapToList(symptoms);
 
