@@ -47,6 +47,7 @@ namespace Thandizo.Patients.WebApi.Controllers
         }
 
         [HttpPost("Add")]
+        [ValidateModelState]
         [CatchException(MessageHelper.AddNewError)]
         public async Task<IActionResult> Add([FromBody]PatientSymptomDTO symptom)
         {
@@ -60,6 +61,7 @@ namespace Thandizo.Patients.WebApi.Controllers
         }
 
         [HttpPut("Update")]
+        [ValidateModelState]
         [CatchException(MessageHelper.UpdateError)]
         public async Task<IActionResult> Update([FromBody]PatientSymptomDTO symptom)
         {
@@ -83,6 +85,20 @@ namespace Thandizo.Patients.WebApi.Controllers
             }
 
             return Ok(outputHandler.Message);
+        }
+
+        [HttpGet("GetByStatus")]
+        [CatchException(MessageHelper.GetListError)]
+        public async Task<IActionResult> GetByStatus([FromQuery]string valuesFilter)
+        {
+            var response = await _service.Get(valuesFilter);
+
+            if (response.IsErrorOccured)
+            {
+                return BadRequest(response.Message);
+            }
+
+            return Ok(response.Result);
         }
     }
 }

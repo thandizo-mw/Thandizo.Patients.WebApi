@@ -8,6 +8,7 @@ using Thandizo.ApiExtensions.General;
 using Thandizo.DAL.Models;
 using Thandizo.DataModels.General;
 using Thandizo.DataModels.Patients;
+using Thandizo.DataModels.Patients.Responses;
 
 namespace Thandizo.Patients.BLL.Services
 {
@@ -20,51 +21,80 @@ namespace Thandizo.Patients.BLL.Services
             _context = context;
         }
 
-        public async Task<OutputResponse> Get(long locationMovementId)
+        public async Task<OutputResponse> Get(long movementId)
         {
-            var patientLocationMovement = await _context.PatientLocationMovements.FirstOrDefaultAsync(x => x.MovementId.Equals(locationMovementId));
-            var mappedPatientLocationMovement = new AutoMapperHelper<DAL.Models.PatientLocationMovements, PatientLocationMovementDTO>().MapToObject(patientLocationMovement);
+            var movement = await _context.PatientLocationMovements.Where(x => x.MovementId.Equals(movementId))
+                .Select(x => new PatientLocationMovementResponse
+                {
+                    CreatedBy = x.CreatedBy,
+                    DateCreated = x.DateCreated,
+                    DistrictCode = x.DistrictCode,
+                    DistrictName = x.DistrictCodeNavigation.DistrictName,
+                    ImagePath = x.ImagePath,
+                    MovementDate = x.MovementDate,
+                    MovementId = x.MovementId,
+                    PatientId = x.PatientId
+                }).FirstOrDefaultAsync();
 
             return new OutputResponse
             {
                 IsErrorOccured = false,
-                Result = mappedPatientLocationMovement
+                Result = movement
             };
         }
 
         public async Task<OutputResponse> Get()
         {
-            var patientLocationMovements = await _context.PatientLocationMovements.OrderBy(x => x.MovementDate).ToListAsync();
-
-            var mappedPatientLocationMovements = new AutoMapperHelper<PatientLocationMovements, PatientLocationMovementDTO>().MapToList(patientLocationMovements);
+            var movements = await _context.PatientLocationMovements.OrderBy(x => x.MovementDate)
+                .Select(x => new PatientLocationMovementResponse
+                {
+                    CreatedBy = x.CreatedBy,
+                    DateCreated = x.DateCreated,
+                    DistrictCode = x.DistrictCode,
+                    DistrictName = x.DistrictCodeNavigation.DistrictName,
+                    ImagePath = x.ImagePath,
+                    MovementDate = x.MovementDate,
+                    MovementId = x.MovementId,
+                    PatientId = x.PatientId
+                }).ToListAsync();
 
             return new OutputResponse
             {
                 IsErrorOccured = false,
-                Result = mappedPatientLocationMovements
+                Result = movements
             };
         }
 
         public async Task<OutputResponse> GetByPatient(long patientId)
         {
-            var patientLocationMovement = await _context.PatientLocationMovements.Where(x => x.PatientId.Equals(patientId)).ToListAsync();
-            var mappedPatientLocationMovement = new AutoMapperHelper<PatientLocationMovements, PatientLocationMovementDTO>().MapToList(patientLocationMovement);
+            var movements = await _context.PatientLocationMovements.Where(x => x.PatientId.Equals(patientId))
+                .Select(x => new PatientLocationMovementResponse
+                {
+                    CreatedBy = x.CreatedBy,
+                    DateCreated = x.DateCreated,
+                    DistrictCode = x.DistrictCode,
+                    DistrictName = x.DistrictCodeNavigation.DistrictName,
+                    ImagePath = x.ImagePath,
+                    MovementDate = x.MovementDate,
+                    MovementId = x.MovementId,
+                    PatientId = x.PatientId
+                }).ToListAsync();
 
             return new OutputResponse
             {
                 IsErrorOccured = false,
-                Result = mappedPatientLocationMovement
+                Result = movements
             };
         }
 
-        public async Task<OutputResponse> Add(PatientLocationMovementDTO patientLocationMovement)
+        public async Task<OutputResponse> Add(PatientLocationMovementDTO movement)
         {
             using (TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
-                var mappedPatientLocationMovement = new AutoMapperHelper<PatientLocationMovementDTO, PatientLocationMovements>().MapToObject(patientLocationMovement);
-                mappedPatientLocationMovement.DateCreated = DateTime.UtcNow.AddHours(2);
+                var mappedMovement = new AutoMapperHelper<PatientLocationMovementDTO, PatientLocationMovements>().MapToObject(movement);
+                mappedMovement.DateCreated = DateTime.UtcNow.AddHours(2);
 
-                var addedPatientLocationMovement = await _context.PatientLocationMovements.AddAsync(mappedPatientLocationMovement);
+                await _context.PatientLocationMovements.AddAsync(mappedMovement);
                 await _context.SaveChangesAsync();
 
                 scope.Complete();
@@ -76,11 +106,11 @@ namespace Thandizo.Patients.BLL.Services
             };
         }
 
-        public async Task<OutputResponse> Update(PatientLocationMovementDTO patientLocationMovement)
+        public async Task<OutputResponse> Update(PatientLocationMovementDTO movement)
         {
-            var patientLocationMovementToUpdate = await _context.PatientLocationMovements.FirstOrDefaultAsync(x => x.MovementId.Equals(patientLocationMovement.MovementId));
+            var movementToUpdate = await _context.PatientLocationMovements.FirstOrDefaultAsync(x => x.MovementId.Equals(movement.MovementId));
 
-            if (patientLocationMovementToUpdate == null)
+            if (movementToUpdate == null)
             {
                 return new OutputResponse
                 {
@@ -90,10 +120,8 @@ namespace Thandizo.Patients.BLL.Services
             }
 
             //update details
-            patientLocationMovementToUpdate.PatientId = patientLocationMovement.PatientId;
-            patientLocationMovementToUpdate.DistrictCode = patientLocationMovement.DistrictCode;
-            patientLocationMovementToUpdate.ImagePath = patientLocationMovement.ImagePath;
-            patientLocationMovementToUpdate.MovementDate = patientLocationMovement.MovementDate;
+            movementToUpdate.DistrictCode = movement.DistrictCode;
+            movementToUpdate.ImagePath = movement.ImagePath;
 
             await _context.SaveChangesAsync();
 

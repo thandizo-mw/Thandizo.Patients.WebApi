@@ -48,6 +48,7 @@ namespace Thandizo.Patients.WebApi.Controllers
         }
 
         [HttpPost("Add")]
+        [ValidateModelState]
         [CatchException(MessageHelper.AddNewError)]
         public async Task<IActionResult> Add([FromBody]IEnumerable<PatientDailyStatusDTO> statuses)
         {

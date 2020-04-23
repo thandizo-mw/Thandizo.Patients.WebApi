@@ -11,5 +11,6 @@ namespace Thandizo.Patients.BLL.Services
         Task<OutputResponse> Get();
         Task<OutputResponse> Get(int symptomId);
         Task<OutputResponse> Update(PatientSymptomDTO symptom);
+        Task<OutputResponse> Get(string valuesFilter);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using System.Threading.Tasks;
 using Thandizo.ApiExtensions.Filters;
 using Thandizo.ApiExtensions.General;
@@ -11,11 +12,19 @@ namespace Thandizo.Patients.WebApi.Controllers
     [ApiController]
     public class PatientsController : ControllerBase
     {
-        IPatientService _service;
+        private readonly IPatientService _service;
+        private readonly IConfiguration _configuration;
 
-        public PatientsController(IPatientService service)
+        public string SmsQueueAddress => 
+            string.Concat(_configuration["RabbitMQHost"], "/", _configuration["SmsQueue"]);
+
+        public string EmailQueueAddress =>
+            string.Concat(_configuration["RabbitMQHost"], "/", _configuration["EmailQueue"]);
+
+        public PatientsController(IPatientService service, IConfiguration configuration)
         {
             _service = service;
+            _configuration = configuration;
         }
 
         [HttpGet("GetByPhoneNumber")]
@@ -61,23 +70,53 @@ namespace Thandizo.Patients.WebApi.Controllers
         }
 
         [HttpPost("Add")]
+        [ValidateModelState]
         [CatchException(MessageHelper.AddNewError)]
-        public async Task<IActionResult> Add([FromBody]PatientDTO patient)
+        public async Task<IActionResult> Add([FromBody]PatientRequest request)
         {
-            var outputHandler = await _service.Add(patient);
+            var outputHandler = await _service.Add(request, EmailQueueAddress, SmsQueueAddress);
+
+            if (outputHandler.IsErrorOccured)
+            {
+                return BadRequest(outputHandler.Message);
+            }
+            return Created("", outputHandler.Message);
+        }
+
+        [HttpPut("Update")]
+        [ValidateModelState]
+        [CatchException(MessageHelper.UpdateError)]
+        public async Task<IActionResult> Update([FromBody]PatientDTO patient)
+        {
+            var outputHandler = await _service.Update(patient);
             if (outputHandler.IsErrorOccured)
             {
                 return BadRequest(outputHandler.Message);
             }
 
-            return Created("", outputHandler.Message);
+            return Ok(outputHandler.Message);
         }
 
-        [HttpPut("Update")]
-        [CatchException(MessageHelper.UpdateError)]
-        public async Task<IActionResult> Update([FromBody]PatientDTO patient)
+        [HttpGet("GetByResponseTeamMember")]
+        [CatchException(MessageHelper.GetListError)]
+        public async Task<IActionResult> GetByResponseTeamMember([FromQuery] string phoneNumber,
+            [FromQuery]string valuesFilter)
         {
-            var outputHandler = await _service.Update(patient);
+            var response = await _service.GetByResponseTeamMember(phoneNumber, valuesFilter);
+
+            if (response.IsErrorOccured)
+            {
+                return BadRequest(response.Message);
+            }
+
+            return Ok(response.Result);
+        }
+
+        [HttpPut("ConfirmPatient")]
+        [CatchException(MessageHelper.UpdateError)]
+        public async Task<IActionResult> ConfirmPatient([FromBody]long patientId)
+        {
+            var outputHandler = await _service.ConfirmPatient(patientId);
             if (outputHandler.IsErrorOccured)
             {
                 return BadRequest(outputHandler.Message);
