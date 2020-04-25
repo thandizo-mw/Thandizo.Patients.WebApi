@@ -297,7 +297,7 @@ namespace Thandizo.Patients.BLL.Services
                 }
 
                 //for DHIS2 integration
-                await dhisEndpoint.Send(addedPatient.Entity.PatientId);
+                await dhisEndpoint.Send(new DhisPatientModelRequest(addedPatient.Entity.PatientId));
 
                 scope.Complete();
             }
