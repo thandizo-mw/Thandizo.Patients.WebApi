@@ -21,6 +21,9 @@ namespace Thandizo.Patients.WebApi.Controllers
         public string EmailQueueAddress =>
             string.Concat(_configuration["RabbitMQHost"], "/", _configuration["EmailQueue"]);
 
+        public string DhisQueueAddress =>
+            string.Concat(_configuration["RabbitMQHost"], "/", _configuration["DhisQueue"]);
+
         public PatientsController(IPatientService service, IConfiguration configuration)
         {
             _service = service;
@@ -74,7 +77,8 @@ namespace Thandizo.Patients.WebApi.Controllers
         [CatchException(MessageHelper.AddNewError)]
         public async Task<IActionResult> Add([FromBody]PatientRequest request)
         {
-            var outputHandler = await _service.Add(request, EmailQueueAddress, SmsQueueAddress);
+            var outputHandler = await _service.Add(request, EmailQueueAddress, 
+                SmsQueueAddress, DhisQueueAddress);
 
             if (outputHandler.IsErrorOccured)
             {
