@@ -230,7 +230,7 @@ namespace Thandizo.Patients.BLL.Services
                 {
                     var mappedStatus = new AutoMapperHelper<PatientDailyStatusDTO, PatientDailyStatuses>().MapToObject(status);
                     mappedStatus.DateCreated = DateTime.UtcNow.AddHours(2);
-                    mappedStatus.DateSubmitted = DateTime.Now.Date;
+                    mappedStatus.DateSubmitted = DateTime.UtcNow.AddHours(2).Date;
                     mappedStatus.PatientId = addedPatient.Entity.PatientId;
 
                     await _context.PatientDailyStatuses.AddAsync(mappedStatus);

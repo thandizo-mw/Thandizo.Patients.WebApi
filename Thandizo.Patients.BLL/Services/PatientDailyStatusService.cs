@@ -70,7 +70,7 @@ namespace Thandizo.Patients.BLL.Services
 
         public async Task<OutputResponse> Add(IEnumerable<PatientDailyStatusDTO> statuses)
         {
-            var submissionDate = DateTime.Now.Date;
+            var submissionDate = DateTime.UtcNow.AddHours(2).Date;
             var symptomsToSubmit = statuses.Select(x => x.SymptomId);
             var patientId = statuses.FirstOrDefault().PatientId;
 
