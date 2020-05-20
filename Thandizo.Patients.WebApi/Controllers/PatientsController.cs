@@ -133,20 +133,6 @@ namespace Thandizo.Patients.WebApi.Controllers
             return Ok(response.Result);
         }
 
-        [HttpGet("GetByPatientByDate")]
-        [CatchException(MessageHelper.GetListError)]
-        public async Task<IActionResult> GetByPatientByDate([FromQuery]long patientId, DateTime fromSubmissionDate, DateTime toSubmissionDate)
-        {
-            var response = await _service.GetByPatientByDate(patientId, fromSubmissionDate, toSubmissionDate);
-
-            if (response.IsErrorOccured)
-            {
-                return BadRequest(response.Message);
-            }
-
-            return Ok(response.Result);
-        }
-
         [HttpPut("ConfirmPatient")]
         [CatchException(MessageHelper.UpdateError)]
         public async Task<IActionResult> ConfirmPatient([FromBody]long patientId)
