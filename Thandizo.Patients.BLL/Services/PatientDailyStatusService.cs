@@ -119,7 +119,7 @@ namespace Thandizo.Patients.BLL.Services
 
         public async Task<OutputResponse> Add(IEnumerable<PatientDailyStatusDTO> statuses)
         {
-            var submissionDate = DateTime.UtcNow;
+            var submissionDate = DateTime.UtcNow.AddHours(2).Date;
             var symptomsToSubmit = statuses.Select(x => x.SymptomId);
             var patientId = statuses.FirstOrDefault().PatientId;
 
@@ -144,7 +144,7 @@ namespace Thandizo.Patients.BLL.Services
                 foreach (var status in statuses)
                 {
                     var mappedStatus = new AutoMapperHelper<PatientDailyStatusDTO, PatientDailyStatuses>().MapToObject(status);
-                    mappedStatus.DateCreated = DateTime.UtcNow.Date;
+                    mappedStatus.DateCreated = DateTime.UtcNow.AddHours(2);
                     mappedStatus.DateSubmitted = submissionDate;
 
                     await _context.PatientDailyStatuses.AddAsync(mappedStatus);

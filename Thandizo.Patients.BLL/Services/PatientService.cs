@@ -189,7 +189,8 @@ namespace Thandizo.Patients.BLL.Services
             };
         }
 
-        public async Task<OutputResponse> Add(PatientRequest request, string emailQueueAddress, string smsQueueAddress)
+        public async Task<OutputResponse> Add(PatientRequest request, string emailQueueAddress, 
+            string smsQueueAddress, string dhisQueueAddress)
         {
             using (TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
@@ -229,7 +230,7 @@ namespace Thandizo.Patients.BLL.Services
                 {
                     var mappedStatus = new AutoMapperHelper<PatientDailyStatusDTO, PatientDailyStatuses>().MapToObject(status);
                     mappedStatus.DateCreated = DateTime.UtcNow.AddHours(2);
-                    mappedStatus.DateSubmitted = DateTime.Now.Date;
+                    mappedStatus.DateSubmitted = DateTime.UtcNow.AddHours(2).Date;
                     mappedStatus.PatientId = addedPatient.Entity.PatientId;
 
                     await _context.PatientDailyStatuses.AddAsync(mappedStatus);
@@ -237,6 +238,7 @@ namespace Thandizo.Patients.BLL.Services
 
                 var smsEndpoint = await _bus.GetSendEndpoint(new Uri(smsQueueAddress));
                 var emailEndpoint = await _bus.GetSendEndpoint(new Uri(emailQueueAddress));
+                var dhisEndpoint = await _bus.GetSendEndpoint(new Uri(dhisQueueAddress));
 
                 var phoneNumbers = new List<string>();
                 var emailAddresses = new List<string>();
@@ -293,6 +295,9 @@ namespace Thandizo.Patients.BLL.Services
                         MessageBody = email
                     }));
                 }
+
+                //for DHIS2 integration
+                await dhisEndpoint.Send(new DhisPatientModelRequest(addedPatient.Entity.PatientId));
 
                 scope.Complete();
             }
