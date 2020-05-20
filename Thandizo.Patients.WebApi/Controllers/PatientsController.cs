@@ -110,6 +110,7 @@ namespace Thandizo.Patients.WebApi.Controllers
 
             if (response.IsErrorOccured)
             {
+                var err = response.Message;
                 return BadRequest(response.Message);
             }
 
