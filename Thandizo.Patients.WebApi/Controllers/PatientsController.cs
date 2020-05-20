@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using System;
 using System.Threading.Tasks;
 using Thandizo.ApiExtensions.Filters;
 using Thandizo.ApiExtensions.General;
@@ -111,6 +112,35 @@ namespace Thandizo.Patients.WebApi.Controllers
             if (response.IsErrorOccured)
             {
                 var err = response.Message;
+                return BadRequest(response.Message);
+            }
+
+            return Ok(response.Result);
+        }
+
+
+        [HttpGet("GetPatientsByDate")]
+        [CatchException(MessageHelper.GetListError)]
+        public async Task<IActionResult> GetPatientsByDate([FromQuery]DateTime fromSubmissionDate, DateTime toSubmissionDate)
+        {
+            var response = await _service.GetPatientsByDate(fromSubmissionDate, toSubmissionDate);
+
+            if (response.IsErrorOccured)
+            {
+                return BadRequest(response.Message);
+            }
+
+            return Ok(response.Result);
+        }
+
+        [HttpGet("GetByPatientByDate")]
+        [CatchException(MessageHelper.GetListError)]
+        public async Task<IActionResult> GetByPatientByDate([FromQuery]long patientId, DateTime fromSubmissionDate, DateTime toSubmissionDate)
+        {
+            var response = await _service.GetByPatientByDate(patientId, fromSubmissionDate, toSubmissionDate);
+
+            if (response.IsErrorOccured)
+            {
                 return BadRequest(response.Message);
             }
 

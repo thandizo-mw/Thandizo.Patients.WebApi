@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Thandizo.DataModels.General;
 using Thandizo.DataModels.Patients;
 
@@ -14,5 +15,7 @@ namespace Thandizo.Patients.BLL.Services
         Task<OutputResponse> GetByPhoneNumber(string phoneNumber);
         Task<OutputResponse> ConfirmPatient(long patientId);
         Task<OutputResponse> GetByResponseTeamMember(string phoneNumber, string valuesFilter);
+        Task<OutputResponse> GetByPatientByDate(long patientId, DateTime fromSubmittedDate, DateTime toSubmittedDate);
+        Task<OutputResponse> GetPatientsByDate(DateTime fromSubmittedDate, DateTime toSubmittedDate);
     }
 }
