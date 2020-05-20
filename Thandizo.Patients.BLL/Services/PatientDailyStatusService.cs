@@ -144,7 +144,7 @@ namespace Thandizo.Patients.BLL.Services
                 foreach (var status in statuses)
                 {
                     var mappedStatus = new AutoMapperHelper<PatientDailyStatusDTO, PatientDailyStatuses>().MapToObject(status);
-                    mappedStatus.DateCreated = DateTime.UtcNow;
+                    mappedStatus.DateCreated = DateTime.UtcNow.Date;
                     mappedStatus.DateSubmitted = submissionDate;
 
                     await _context.PatientDailyStatuses.AddAsync(mappedStatus);
