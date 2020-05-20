@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
+using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Thandizo.ApiExtensions.Filters;
@@ -14,11 +15,15 @@ namespace Thandizo.Patients.WebApi.Controllers
     public class PatientDailyStatusesController : ControllerBase
     {
         IPatientDailyStatusService _service;
+        private readonly IConfiguration _configuration;
 
         public PatientDailyStatusesController(IPatientDailyStatusService service)
         {
             _service = service;
         }
+
+        public string DhisDailySymptomsQueueAddress =>
+            string.Concat(_configuration["RabbitMQHost"], "/", _configuration["DhisDailySymptomsQueue"]);
 
         [HttpGet("GetById")]
         [CatchException(MessageHelper.GetItemError)]
@@ -54,7 +59,7 @@ namespace Thandizo.Patients.WebApi.Controllers
         [CatchException(MessageHelper.AddNewError)]
         public async Task<IActionResult> Add([FromBody]IEnumerable<PatientDailyStatusDTO> statuses)
         {
-            var outputHandler = await _service.Add(statuses);
+            var outputHandler = await _service.Add(statuses, DhisDailySymptomsQueueAddress);
             if (outputHandler.IsErrorOccured)
             {
                 return BadRequest(outputHandler.Message);

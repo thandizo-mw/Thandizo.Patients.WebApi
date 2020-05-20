@@ -13,6 +13,7 @@ namespace Thandizo.Patients.WebApi
         /// service descriptor
         /// </summary>
         /// <param name="services"></param>
+        /// <param name="messageTemplate"></param>
         public static IServiceCollection AddDomainServices(this IServiceCollection services, MessageTemplateModel messageTemplate)
         {
             services.AddScoped<IPatientService>(x => new PatientService(
@@ -20,8 +21,10 @@ namespace Thandizo.Patients.WebApi
                 x.GetRequiredService<IBusControl>(),
                 messageTemplate.EmailTemplateFilePath,
                 messageTemplate.SmsTemplateFilePath));
+            services.AddScoped<IPatientDailyStatusService>(x => new PatientDailyStatusService(
+                x.GetRequiredService<thandizoContext>(),
+                x.GetRequiredService<IBusControl>()));
             services.AddScoped<IStatisticsService, StatisticsService>();
-            services.AddScoped<IPatientDailyStatusService, PatientDailyStatusService>();
             services.AddScoped<IPatientHistoryService, PatientHistoryService>();
             services.AddScoped<ISymptomService, SymptomService>();
             services.AddScoped<ITransmissionClassificationService, TransmissionClassificationService>();
