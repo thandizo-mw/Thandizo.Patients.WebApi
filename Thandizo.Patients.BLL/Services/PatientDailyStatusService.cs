@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +8,7 @@ using System.Transactions;
 using Thandizo.ApiExtensions.DataMapping;
 using Thandizo.ApiExtensions.General;
 using Thandizo.DAL.Models;
+using Thandizo.DataModels.Contracts;
 using Thandizo.DataModels.General;
 using Thandizo.DataModels.Patients;
 using Thandizo.DataModels.Patients.Responses;
@@ -16,10 +18,13 @@ namespace Thandizo.Patients.BLL.Services
     public class PatientDailyStatusService : IPatientDailyStatusService
     {
         private readonly thandizoContext _context;
+        private readonly IBusControl _bus;
 
-        public PatientDailyStatusService(thandizoContext context)
+        public PatientDailyStatusService(thandizoContext context
+            , IBusControl bus)
         {
             _context = context;
+            _bus = bus;
         }
 
         public async Task<OutputResponse> Get(long submissionId)
@@ -68,7 +73,8 @@ namespace Thandizo.Patients.BLL.Services
             };
         }
 
-        public async Task<OutputResponse> Add(IEnumerable<PatientDailyStatusDTO> statuses)
+        public async Task<OutputResponse> Add(IEnumerable<PatientDailyStatusDTO> statuses,
+            string dhisDailySymptomsQueueAddress)
         {
             var submissionDate = DateTime.UtcNow.AddHours(2).Date;
             var symptomsToSubmit = statuses.Select(x => x.SymptomId);
@@ -97,13 +103,17 @@ namespace Thandizo.Patients.BLL.Services
                     var mappedStatus = new AutoMapperHelper<PatientDailyStatusDTO, PatientDailyStatuses>().MapToObject(status);
                     mappedStatus.DateCreated = DateTime.UtcNow.AddHours(2);
                     mappedStatus.DateSubmitted = submissionDate;
-
+                    mappedStatus.IsPostedToDhis = false;
                     await _context.PatientDailyStatuses.AddAsync(mappedStatus);
                 }
 
                 await _context.SaveChangesAsync();
                 scope.Complete();
             }
+
+            //for DHIS2 integration
+            var dhisEndpoint = await _bus.GetSendEndpoint(new Uri(dhisDailySymptomsQueueAddress));
+            await dhisEndpoint.Send(new DhisPatientDailyStatusRequest(statuses));
 
             return new OutputResponse
             {
