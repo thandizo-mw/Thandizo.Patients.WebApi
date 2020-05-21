@@ -480,5 +480,34 @@ namespace Thandizo.Patients.BLL.Services
                 Result = patients
             };
         }
+
+
+        public async Task<OutputResponse> GetPatientsByDate(DateTime fromSubmittedDate, DateTime toSubmittedDate)
+        {
+            var patients = await _context.PatientDailyStatuses.Where(x => x.DateSubmitted >= fromSubmittedDate.AddHours(-2) && x.DateSubmitted < toSubmittedDate)
+                              .GroupBy(x => new
+                              {
+                                  x.PatientId,
+                                  x.Patient.FirstName,
+                                  x.Patient.OtherNames,
+                                  x.Patient.LastName,
+                                  x.Patient.IdentificationNumber
+                              }).Select(x => new PatientDTO
+                              {
+                                  PatientId = x.Key.PatientId,
+                                  FirstName = x.Key.FirstName,
+                                  OtherNames = x.Key.OtherNames,
+                                  LastName = x.Key.LastName,
+                                  IdentificationNumber = x.Key.IdentificationNumber
+                              }).ToListAsync();
+
+            return new OutputResponse
+            {
+                IsErrorOccured = false,
+                Result = patients
+            };
+        }
+
+        
     }
 }

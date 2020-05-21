@@ -11,7 +11,7 @@ namespace Thandizo.Patients.BLL.Services
         Task<OutputResponse> Add(IEnumerable<PatientDailyStatusDTO> statuses);
         Task<OutputResponse> Get(long submissionId);
         Task<OutputResponse> GetByPatient(long patientId);
+
         Task<OutputResponse> GetByPatientByDate(long patientId, DateTime fromSubmittedDate, DateTime toSubmittedDate);
-        Task<OutputResponse> GetPatientByDate(DateTime fromSubmittedDate, DateTime toSubmittedDate);
     }
 }

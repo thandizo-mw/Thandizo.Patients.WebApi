@@ -95,6 +95,7 @@ namespace Thandizo.Patients.BLL.Services
                                 })
                                 .ToListAsync();
 
+
             return new OutputResponse
             {
                 IsErrorOccured = false,
@@ -102,23 +103,21 @@ namespace Thandizo.Patients.BLL.Services
             };
         }
 
-        public async Task<OutputResponse> GetByPatient(long patientId)
+        public async Task<OutputResponse> GetByPatientByDate(long patientId, DateTime fromSubmittedDate, DateTime toSubmittedDate)
         {
-            var dailyStatuses = await _context.PatientDailyStatuses.Where(x => x.PatientId.Equals(patientId))
-                .OrderBy(x => x.DateSubmitted)
-                .ThenBy(x => x.SymptomId)
-                .Select(x => new PatientDailyStatusResponse
-                {
-                    CreatedBy = x.CreatedBy,
-                    SymptomName = x.Symptom.SymptomName,
-                    DateCreated = x.DateCreated,
-                    DateSubmitted = x.DateSubmitted,
-                    PatientId = x.PatientId,
-                    SubmissionId = x.SubmissionId,
-                    SymptomId = x.SymptomId
-                })
-                .ToListAsync();
-
+            var dailyStatuses = await _context.PatientDailyStatuses.Where(x => x.DateSubmitted >= fromSubmittedDate.AddHours(-2) && x.DateSubmitted < toSubmittedDate).Where(x => x.PatientId.Equals(patientId))
+                                .OrderBy(x => x.SymptomId)
+                                .Select(x => new PatientDailyStatusResponse
+                                {
+                                    CreatedBy = x.CreatedBy,
+                                    SymptomName = x.Symptom.SymptomName,
+                                    DateCreated = x.DateCreated,
+                                    DateSubmitted = x.DateSubmitted,
+                                    PatientId = x.PatientId,
+                                    SubmissionId = x.SubmissionId,
+                                    SymptomId = x.SymptomId
+                                })
+                                .ToListAsync();
 
             return new OutputResponse
             {
