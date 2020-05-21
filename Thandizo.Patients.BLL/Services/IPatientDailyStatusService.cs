@@ -8,7 +8,7 @@ namespace Thandizo.Patients.BLL.Services
 {
     public interface IPatientDailyStatusService
     {
-        Task<OutputResponse> Add(IEnumerable<PatientDailyStatusDTO> statuses, string dhisDailySymptomsQueueAddress);
+        Task<OutputResponse> Add(IEnumerable<PatientDailyStatusDTO> statuses);
         Task<OutputResponse> Get(long submissionId);
         Task<OutputResponse> GetByPatient(long patientId);
         Task<OutputResponse> GetByPatientByDate(long patientId, DateTime fromSubmittedDate, DateTime toSubmittedDate);
