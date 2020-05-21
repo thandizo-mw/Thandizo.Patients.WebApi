@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using System.Threading.Tasks;
 using Thandizo.ApiExtensions.Filters;
 using Thandizo.ApiExtensions.General;
@@ -13,21 +12,10 @@ namespace Thandizo.Patients.WebApi.Controllers
     public class PatientsController : ControllerBase
     {
         private readonly IPatientService _service;
-        private readonly IConfiguration _configuration;
 
-        public string SmsQueueAddress => 
-            string.Concat(_configuration["RabbitMQHost"], "/", _configuration["SmsQueue"]);
-
-        public string EmailQueueAddress =>
-            string.Concat(_configuration["RabbitMQHost"], "/", _configuration["EmailQueue"]);
-
-        public string DhisQueueAddress =>
-            string.Concat(_configuration["RabbitMQHost"], "/", _configuration["DhisQueue"]);
-
-        public PatientsController(IPatientService service, IConfiguration configuration)
+        public PatientsController(IPatientService service)
         {
             _service = service;
-            _configuration = configuration;
         }
 
         [HttpGet("GetByPhoneNumber")]
@@ -77,8 +65,7 @@ namespace Thandizo.Patients.WebApi.Controllers
         [CatchException(MessageHelper.AddNewError)]
         public async Task<IActionResult> Add([FromBody]PatientRequest request)
         {
-            var outputHandler = await _service.Add(request, EmailQueueAddress, 
-                SmsQueueAddress, DhisQueueAddress);
+            var outputHandler = await _service.Add(request);
 
             if (outputHandler.IsErrorOccured)
             {
