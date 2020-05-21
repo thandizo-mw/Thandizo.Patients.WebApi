@@ -14,6 +14,7 @@ using Thandizo.DataModels.General;
 using Thandizo.DataModels.Messaging;
 using Thandizo.DataModels.Patients;
 using Thandizo.DataModels.Patients.Responses;
+using Thandizo.Patients.BLL.Models;
 
 namespace Thandizo.Patients.BLL.Services
 {
@@ -21,15 +22,14 @@ namespace Thandizo.Patients.BLL.Services
     {
         private readonly IBusControl _bus;
         private readonly thandizoContext _context;
-        private readonly string _emailTemplate;
+        private readonly CustomConfiguration _customConfiguration;
         private readonly string _smsTemplate;
 
-        public PatientService(thandizoContext context, IBusControl bus, string emailTemplate, string smsTemplate)
+        public PatientService(thandizoContext context, IBusControl bus, CustomConfiguration customConfiguration)
         {
             _bus = bus;
             _context = context;
-            _emailTemplate = emailTemplate;
-            _smsTemplate = smsTemplate;
+            _customConfiguration = customConfiguration;
         }
 
         public async Task<OutputResponse> GetByPhoneNumber(string phoneNumber)
@@ -189,7 +189,7 @@ namespace Thandizo.Patients.BLL.Services
             };
         }
 
-        public async Task<OutputResponse> Add(PatientRequest request, string emailQueueAddress, string smsQueueAddress)
+        public async Task<OutputResponse> Add(PatientRequest request)
         {
             using (TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
@@ -229,14 +229,15 @@ namespace Thandizo.Patients.BLL.Services
                 {
                     var mappedStatus = new AutoMapperHelper<PatientDailyStatusDTO, PatientDailyStatuses>().MapToObject(status);
                     mappedStatus.DateCreated = DateTime.UtcNow.AddHours(2);
-                    mappedStatus.DateSubmitted = DateTime.Now.Date;
+                    mappedStatus.DateSubmitted = DateTime.UtcNow.AddHours(2).Date;
                     mappedStatus.PatientId = addedPatient.Entity.PatientId;
 
                     await _context.PatientDailyStatuses.AddAsync(mappedStatus);
                 }
 
-                var smsEndpoint = await _bus.GetSendEndpoint(new Uri(smsQueueAddress));
-                var emailEndpoint = await _bus.GetSendEndpoint(new Uri(emailQueueAddress));
+                var smsEndpoint = await _bus.GetSendEndpoint(new Uri(_customConfiguration.SmsQueueAddress));
+                var emailEndpoint = await _bus.GetSendEndpoint(new Uri(_customConfiguration.EmailQueueAddress));
+                var dhisEndpoint = await _bus.GetSendEndpoint(new Uri(_customConfiguration.PatientQueueAddress));
 
                 var phoneNumbers = new List<string>();
                 var emailAddresses = new List<string>();
@@ -275,11 +276,11 @@ namespace Thandizo.Patients.BLL.Services
                     }));
                 }
 
-                if (emailAddresses.Any() && File.Exists(_emailTemplate))
+                if (emailAddresses.Any() && File.Exists(_customConfiguration.EmailTemplate))
                 {
                     var district = await _context.Districts.FindAsync(request.Patient.DistrictCode);
                     var registrationSource = await _context.RegistrationSources.FindAsync(request.Patient.SourceId);
-                    var email = await File.ReadAllTextAsync(_emailTemplate);
+                    var email = await File.ReadAllTextAsync(_customConfiguration.EmailTemplate);
                     email = email.Replace("{{REGISTRATION_SOURCE}}", registrationSource.SourceName);
                     email = email.Replace("{{FULL_NAME}}", fullName);
                     email = email.Replace("{{PHONE_NUMBER}}", string.Concat("+", request.Patient.PhoneNumber));
@@ -287,12 +288,15 @@ namespace Thandizo.Patients.BLL.Services
                     email = email.Replace("{{DISTRICT_NAME}}", district.DistrictName);
                     await emailEndpoint.Send(new MessageModelRequest(new MessageModel
                     {
-                        SourceAddress = "thandizo@angledimension.com",
-                        Subject = "COVID-19 Patient Registration",
+                        SourceAddress = _customConfiguration.SourceEmailAddress,
+                        Subject = _customConfiguration.RegistrationEmailSubject,
                         DestinationRecipients = emailAddresses,
                         MessageBody = email
                     }));
                 }
+
+                //for DHIS2 integration
+                await dhisEndpoint.Send(new DhisPatientModelRequest(addedPatient.Entity.PatientId));
 
                 scope.Complete();
             }
@@ -476,5 +480,34 @@ namespace Thandizo.Patients.BLL.Services
                 Result = patients
             };
         }
+
+
+        public async Task<OutputResponse> GetPatientsByDate(DateTime fromSubmittedDate, DateTime toSubmittedDate)
+        {
+            var patients = await _context.PatientDailyStatuses.Where(x => x.DateSubmitted >= fromSubmittedDate.AddHours(-2) && x.DateSubmitted < toSubmittedDate)
+                              .GroupBy(x => new
+                              {
+                                  x.PatientId,
+                                  x.Patient.FirstName,
+                                  x.Patient.OtherNames,
+                                  x.Patient.LastName,
+                                  x.Patient.IdentificationNumber
+                              }).Select(x => new PatientDTO
+                              {
+                                  PatientId = x.Key.PatientId,
+                                  FirstName = x.Key.FirstName,
+                                  OtherNames = x.Key.OtherNames,
+                                  LastName = x.Key.LastName,
+                                  IdentificationNumber = x.Key.IdentificationNumber
+                              }).ToListAsync();
+
+            return new OutputResponse
+            {
+                IsErrorOccured = false,
+                Result = patients
+            };
+        }
+
+        
     }
 }

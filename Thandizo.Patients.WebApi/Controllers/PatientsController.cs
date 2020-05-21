@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
+using System;
 using System.Threading.Tasks;
 using Thandizo.ApiExtensions.Filters;
 using Thandizo.ApiExtensions.General;
@@ -13,18 +13,10 @@ namespace Thandizo.Patients.WebApi.Controllers
     public class PatientsController : ControllerBase
     {
         private readonly IPatientService _service;
-        private readonly IConfiguration _configuration;
 
-        public string SmsQueueAddress => 
-            string.Concat(_configuration["RabbitMQHost"], "/", _configuration["SmsQueue"]);
-
-        public string EmailQueueAddress =>
-            string.Concat(_configuration["RabbitMQHost"], "/", _configuration["EmailQueue"]);
-
-        public PatientsController(IPatientService service, IConfiguration configuration)
+        public PatientsController(IPatientService service)
         {
             _service = service;
-            _configuration = configuration;
         }
 
         [HttpGet("GetByPhoneNumber")]
@@ -74,7 +66,7 @@ namespace Thandizo.Patients.WebApi.Controllers
         [CatchException(MessageHelper.AddNewError)]
         public async Task<IActionResult> Add([FromBody]PatientRequest request)
         {
-            var outputHandler = await _service.Add(request, EmailQueueAddress, SmsQueueAddress);
+            var outputHandler = await _service.Add(request);
 
             if (outputHandler.IsErrorOccured)
             {
@@ -103,6 +95,22 @@ namespace Thandizo.Patients.WebApi.Controllers
             [FromQuery]string valuesFilter)
         {
             var response = await _service.GetByResponseTeamMember(phoneNumber, valuesFilter);
+
+            if (response.IsErrorOccured)
+            {
+                var err = response.Message;
+                return BadRequest(response.Message);
+            }
+
+            return Ok(response.Result);
+        }
+
+
+        [HttpGet("GetPatientsByDate")]
+        [CatchException(MessageHelper.GetListError)]
+        public async Task<IActionResult> GetPatientsByDate([FromQuery]DateTime fromSubmissionDate, DateTime toSubmissionDate)
+        {
+            var response = await _service.GetPatientsByDate(fromSubmissionDate, toSubmissionDate);
 
             if (response.IsErrorOccured)
             {

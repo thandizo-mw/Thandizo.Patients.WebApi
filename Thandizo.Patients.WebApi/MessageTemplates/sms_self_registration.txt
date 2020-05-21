@@ -1,2 +1,2 @@
 ﻿A new patient {{FULL_NAME}} has self-registered for COVID-19 
-and reachable on {{PHONE_NUMBER}}. Login to thandizo.mw for more details
+and reachable on {{PHONE_NUMBER}}. Login to portal.thandizo.mw for more details

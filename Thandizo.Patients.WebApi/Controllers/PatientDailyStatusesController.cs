@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Thandizo.ApiExtensions.Filters;
@@ -38,6 +39,20 @@ namespace Thandizo.Patients.WebApi.Controllers
         public async Task<IActionResult> GetByPatient([FromQuery]long patientId)
         {
             var response = await _service.GetByPatient(patientId);
+
+            if (response.IsErrorOccured)
+            {
+                return BadRequest(response.Message);
+            }
+
+            return Ok(response.Result);
+        }
+
+        [HttpGet("GetByPatientByDate")]
+        [CatchException(MessageHelper.GetListError)]
+        public async Task<IActionResult> GetByPatientByDate([FromQuery]long patientId, DateTime fromSubmissionDate, DateTime toSubmissionDate)
+        {
+            var response = await _service.GetByPatientByDate(patientId, fromSubmissionDate, toSubmissionDate);
 
             if (response.IsErrorOccured)
             {
