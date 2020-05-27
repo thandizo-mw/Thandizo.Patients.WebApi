@@ -10,7 +10,7 @@ using Microsoft.Extensions.Hosting;
 using System;
 using System.IO;
 using Thandizo.DAL.Models;
-using Thandizo.Patients.WebApi.Models;
+using Thandizo.Patients.BLL.Models;
 
 namespace Thandizo.Patients.WebApi
 {
@@ -31,10 +31,18 @@ namespace Thandizo.Patients.WebApi
             services.AddControllers();
             services.AddEntityFrameworkNpgsql().AddDbContext<thandizoContext>(options =>
                         options.UseNpgsql(Configuration.GetConnectionString("DatabaseConnection")));
-            var messageTemplate = new MessageTemplateModel
+
+            var customConfiguration = new CustomConfiguration
             {
-                EmailTemplateFilePath = Path.Combine(Environment.ContentRootPath, "MessageTemplates", "email_self_registration.html"),
-                SmsTemplateFilePath = Path.Combine(Environment.ContentRootPath, "MessageTemplates", "sms_self_registration.txt")
+                EmailTemplate = Path.Combine(Environment.ContentRootPath, "MessageTemplates", "email_self_registration.html"),
+                SmsTemplate = Path.Combine(Environment.ContentRootPath, "MessageTemplates", "sms_self_registration.txt"),
+                SmsQueueAddress = string.Concat(Configuration["RabbitMQHost"], "/", Configuration["SmsQueue"]),
+                EmailQueueAddress = string.Concat(Configuration["RabbitMQHost"], "/", Configuration["EmailQueue"]),
+                PatientQueueAddress = string.Concat(Configuration["RabbitMQHost"], "/", Configuration["DhisQueue"]),
+                DailySymptomsQueueAddress = string.Concat(Configuration["RabbitMQHost"], "/", Configuration["DhisDailySymptomsQueue"]),
+                SourceEmailAddress = Configuration["SourceEmailAddress"],
+                DailySymptomsEmailSubject = Configuration["DailySymptomsEmailSubject"],
+                RegistrationEmailSubject = Configuration["RegistrationEmailSubject"]
             };
 
             var bus = Bus.Factory.CreateUsingRabbitMq(configure =>
@@ -49,7 +57,7 @@ namespace Thandizo.Patients.WebApi
             services.AddSingleton<ISendEndpointProvider>(bus);
             services.AddSingleton(bus);
             bus.Start();
-            services.AddDomainServices(messageTemplate);
+            services.AddDomainServices(customConfiguration);
             //Disable automatic model state validation to provide cleaner error messages to avoid default complex object
             services.Configure<ApiBehaviorOptions>(options =>
             {

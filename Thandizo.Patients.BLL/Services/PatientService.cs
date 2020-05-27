@@ -14,6 +14,7 @@ using Thandizo.DataModels.General;
 using Thandizo.DataModels.Messaging;
 using Thandizo.DataModels.Patients;
 using Thandizo.DataModels.Patients.Responses;
+using Thandizo.Patients.BLL.Models;
 
 namespace Thandizo.Patients.BLL.Services
 {
@@ -21,15 +22,14 @@ namespace Thandizo.Patients.BLL.Services
     {
         private readonly IBusControl _bus;
         private readonly thandizoContext _context;
-        private readonly string _emailTemplate;
+        private readonly CustomConfiguration _customConfiguration;
         private readonly string _smsTemplate;
 
-        public PatientService(thandizoContext context, IBusControl bus, string emailTemplate, string smsTemplate)
+        public PatientService(thandizoContext context, IBusControl bus, CustomConfiguration customConfiguration)
         {
             _bus = bus;
             _context = context;
-            _emailTemplate = emailTemplate;
-            _smsTemplate = smsTemplate;
+            _customConfiguration = customConfiguration;
         }
 
         public async Task<OutputResponse> GetByPhoneNumber(string phoneNumber)
@@ -189,8 +189,7 @@ namespace Thandizo.Patients.BLL.Services
             };
         }
 
-        public async Task<OutputResponse> Add(PatientRequest request, string emailQueueAddress, 
-            string smsQueueAddress, string dhisQueueAddress)
+        public async Task<OutputResponse> Add(PatientRequest request)
         {
             using (TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
@@ -236,9 +235,9 @@ namespace Thandizo.Patients.BLL.Services
                     await _context.PatientDailyStatuses.AddAsync(mappedStatus);
                 }
 
-                var smsEndpoint = await _bus.GetSendEndpoint(new Uri(smsQueueAddress));
-                var emailEndpoint = await _bus.GetSendEndpoint(new Uri(emailQueueAddress));
-                var dhisEndpoint = await _bus.GetSendEndpoint(new Uri(dhisQueueAddress));
+                var smsEndpoint = await _bus.GetSendEndpoint(new Uri(_customConfiguration.SmsQueueAddress));
+                var emailEndpoint = await _bus.GetSendEndpoint(new Uri(_customConfiguration.EmailQueueAddress));
+                var dhisEndpoint = await _bus.GetSendEndpoint(new Uri(_customConfiguration.PatientQueueAddress));
 
                 var phoneNumbers = new List<string>();
                 var emailAddresses = new List<string>();
@@ -277,11 +276,11 @@ namespace Thandizo.Patients.BLL.Services
                     }));
                 }
 
-                if (emailAddresses.Any() && File.Exists(_emailTemplate))
+                if (emailAddresses.Any() && File.Exists(_customConfiguration.EmailTemplate))
                 {
                     var district = await _context.Districts.FindAsync(request.Patient.DistrictCode);
                     var registrationSource = await _context.RegistrationSources.FindAsync(request.Patient.SourceId);
-                    var email = await File.ReadAllTextAsync(_emailTemplate);
+                    var email = await File.ReadAllTextAsync(_customConfiguration.EmailTemplate);
                     email = email.Replace("{{REGISTRATION_SOURCE}}", registrationSource.SourceName);
                     email = email.Replace("{{FULL_NAME}}", fullName);
                     email = email.Replace("{{PHONE_NUMBER}}", string.Concat("+", request.Patient.PhoneNumber));
@@ -289,8 +288,8 @@ namespace Thandizo.Patients.BLL.Services
                     email = email.Replace("{{DISTRICT_NAME}}", district.DistrictName);
                     await emailEndpoint.Send(new MessageModelRequest(new MessageModel
                     {
-                        SourceAddress = "thandizo@angledimension.com",
-                        Subject = "COVID-19 Patient Registration",
+                        SourceAddress = _customConfiguration.SourceEmailAddress,
+                        Subject = _customConfiguration.RegistrationEmailSubject,
                         DestinationRecipients = emailAddresses,
                         MessageBody = email
                     }));

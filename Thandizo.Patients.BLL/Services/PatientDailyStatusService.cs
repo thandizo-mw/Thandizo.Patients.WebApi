@@ -12,6 +12,7 @@ using Thandizo.DataModels.Contracts;
 using Thandizo.DataModels.General;
 using Thandizo.DataModels.Patients;
 using Thandizo.DataModels.Patients.Responses;
+using Thandizo.Patients.BLL.Models;
 using Thandizo.DataModels.Statistics;
 
 namespace Thandizo.Patients.BLL.Services
@@ -20,12 +21,15 @@ namespace Thandizo.Patients.BLL.Services
     {
         private readonly thandizoContext _context;
         private readonly IBusControl _bus;
+        private readonly CustomConfiguration _customConfiguration;
 
         public PatientDailyStatusService(thandizoContext context
-            , IBusControl bus)
+            , IBusControl bus,
+            CustomConfiguration customConfiguration)
         {
             _context = context;
             _bus = bus;
+            _customConfiguration = customConfiguration;
         }
 
         public async Task<OutputResponse> Get(long submissionId)
@@ -48,7 +52,6 @@ namespace Thandizo.Patients.BLL.Services
                 Result = dailyStatus
             };
         }
-
 
         public async Task<OutputResponse> GetByPatient(long patientId)
         {
@@ -77,7 +80,8 @@ namespace Thandizo.Patients.BLL.Services
 
         public async Task<OutputResponse> GetByPatientByDate(long patientId, DateTime fromSubmittedDate, DateTime toSubmittedDate)
         {
-            var dailyStatuses = await _context.PatientDailyStatuses.Where(x => x.DateSubmitted >= fromSubmittedDate.AddHours(-2) && x.DateSubmitted < toSubmittedDate).Where(x => x.PatientId.Equals(patientId))
+            var dailyStatuses = await _context.PatientDailyStatuses.Where(x => x.DateSubmitted >= fromSubmittedDate.AddHours(-2) 
+                                && x.DateSubmitted < toSubmittedDate).Where(x => x.PatientId.Equals(patientId))
                                 .OrderBy(x => x.SymptomId)
                                 .Select(x => new PatientDailyStatusResponse
                                 {
@@ -90,6 +94,7 @@ namespace Thandizo.Patients.BLL.Services
                                     SymptomId = x.SymptomId
                                 })
                                 .ToListAsync();
+
 
             return new OutputResponse
             {
@@ -147,8 +152,7 @@ namespace Thandizo.Patients.BLL.Services
             };
         }
 
-        public async Task<OutputResponse> Add(IEnumerable<PatientDailyStatusDTO> statuses,
-            string dhisDailySymptomsQueueAddress)
+        public async Task<OutputResponse> Add(IEnumerable<PatientDailyStatusDTO> statuses)
         {
             var submissionDate = DateTime.UtcNow.AddHours(2).Date;
             var symptomsToSubmit = statuses.Select(x => x.SymptomId);
@@ -186,7 +190,7 @@ namespace Thandizo.Patients.BLL.Services
             }
 
             //for DHIS2 integration
-            var dhisEndpoint = await _bus.GetSendEndpoint(new Uri(dhisDailySymptomsQueueAddress));
+            var dhisEndpoint = await _bus.GetSendEndpoint(new Uri(_customConfiguration.DailySymptomsQueueAddress));
             await dhisEndpoint.Send(new DhisPatientDailyStatusRequest(statuses));
 
             return new OutputResponse
