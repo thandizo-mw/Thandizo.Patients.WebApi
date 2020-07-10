@@ -83,7 +83,7 @@ namespace Thandizo.Patients.BLL.Services
 
             var mappedPatientStatus = new AutoMapperHelper<PatientSymptomDTO, PatientSymptoms>().MapToObject(symptom);
             mappedPatientStatus.RowAction = "I";
-            mappedPatientStatus.DateCreated = DateTime.UtcNow.AddHours(2);
+            mappedPatientStatus.DateCreated = DateTime.UtcNow;
 
             await _context.PatientSymptoms.AddAsync(mappedPatientStatus);
             await _context.SaveChangesAsync();
@@ -114,7 +114,7 @@ namespace Thandizo.Patients.BLL.Services
             symptomToUpdate.ExternalReferenceNumber = symptom.ExternalReferenceNumber;
             symptomToUpdate.RowAction = "U";
             symptomToUpdate.ModifiedBy = symptom.CreatedBy;
-            symptomToUpdate.DateModified = DateTime.UtcNow.AddHours(2);
+            symptomToUpdate.DateModified = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
 

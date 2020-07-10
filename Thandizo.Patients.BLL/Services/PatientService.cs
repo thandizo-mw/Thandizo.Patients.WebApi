@@ -195,7 +195,7 @@ namespace Thandizo.Patients.BLL.Services
             {
                 var mappedPatient = new AutoMapperHelper<PatientDTO, DAL.Models.Patients>().MapToObject(request.Patient);
                 mappedPatient.RowAction = "I";
-                mappedPatient.DateCreated = DateTime.UtcNow.AddHours(2);
+                mappedPatient.DateCreated = DateTime.UtcNow;
 
                 //if its not data entry (DE), it implies that is self-registration that requires
                 //to be confirmed before it becomes a case to avoid bogus reporting
@@ -217,8 +217,8 @@ namespace Thandizo.Patients.BLL.Services
                 var patientHistory = new PatientHistory
                 {
                     CreatedBy = request.Patient.CreatedBy,
-                    DateCreated = DateTime.UtcNow.AddHours(2),
-                    DateReported = DateTime.UtcNow.AddHours(2).Date,
+                    DateCreated = DateTime.UtcNow,
+                    DateReported = DateTime.UtcNow.Date,
                     PatientId = addedPatient.Entity.PatientId,
                     PatientStatusId = mappedPatient.PatientStatusId
                 };
@@ -228,8 +228,8 @@ namespace Thandizo.Patients.BLL.Services
                 foreach (var status in request.PatientDailyStatuses)
                 {
                     var mappedStatus = new AutoMapperHelper<PatientDailyStatusDTO, PatientDailyStatuses>().MapToObject(status);
-                    mappedStatus.DateCreated = DateTime.UtcNow.AddHours(2);
-                    mappedStatus.DateSubmitted = DateTime.UtcNow.AddHours(2).Date;
+                    mappedStatus.DateCreated = DateTime.UtcNow;
+                    mappedStatus.DateSubmitted = DateTime.UtcNow.Date;
                     mappedStatus.PatientId = addedPatient.Entity.PatientId;
 
                     await _context.PatientDailyStatuses.AddAsync(mappedStatus);
@@ -343,7 +343,7 @@ namespace Thandizo.Patients.BLL.Services
             patientToUpdate.ResidenceCountryCode = patient.ResidenceCountryCode;
             patientToUpdate.RowAction = "U";
             patientToUpdate.ModifiedBy = patient.CreatedBy;
-            patientToUpdate.DateModified = DateTime.UtcNow.AddHours(2);
+            patientToUpdate.DateModified = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
 
@@ -372,7 +372,7 @@ namespace Thandizo.Patients.BLL.Services
             {
                 //update isConfirmed field
                 patientToUpdate.IsConfirmed = true;
-                patientToUpdate.DateModified = DateTime.UtcNow.AddHours(2);
+                patientToUpdate.DateModified = DateTime.UtcNow;
                 patientToUpdate.RowAction = "U";
                 await _context.SaveChangesAsync();
 

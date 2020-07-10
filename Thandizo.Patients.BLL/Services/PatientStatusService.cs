@@ -59,7 +59,7 @@ namespace Thandizo.Patients.BLL.Services
 
             var mappedPatientStatus = new AutoMapperHelper<PatientStatusDTO, PatientStatuses>().MapToObject(patientStatus);
             mappedPatientStatus.RowAction = "I";
-            mappedPatientStatus.DateCreated = DateTime.UtcNow.AddHours(2);
+            mappedPatientStatus.DateCreated = DateTime.UtcNow;
 
             await _context.PatientStatuses.AddAsync(mappedPatientStatus);
             await _context.SaveChangesAsync();
@@ -89,7 +89,7 @@ namespace Thandizo.Patients.BLL.Services
             patientStatusToUpdate.Severity = patientStatus.Severity;
             patientStatusToUpdate.RowAction = "U";
             patientStatusToUpdate.ModifiedBy = patientStatus.CreatedBy;
-            patientStatusToUpdate.DateModified = DateTime.UtcNow.AddHours(2);
+            patientStatusToUpdate.DateModified = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
 

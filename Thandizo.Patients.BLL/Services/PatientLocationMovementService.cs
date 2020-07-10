@@ -92,7 +92,7 @@ namespace Thandizo.Patients.BLL.Services
             using (TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 var mappedMovement = new AutoMapperHelper<PatientLocationMovementDTO, PatientLocationMovements>().MapToObject(movement);
-                mappedMovement.DateCreated = DateTime.UtcNow.AddHours(2);
+                mappedMovement.DateCreated = DateTime.UtcNow;
 
                 await _context.PatientLocationMovements.AddAsync(mappedMovement);
                 await _context.SaveChangesAsync();

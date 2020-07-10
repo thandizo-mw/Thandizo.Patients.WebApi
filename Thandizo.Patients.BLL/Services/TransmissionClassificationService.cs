@@ -60,7 +60,7 @@ namespace Thandizo.Patients.BLL.Services
 
             var mappedClassification = new AutoMapperHelper<TransmissionClassificationDTO, TransmissionClassifications>().MapToObject(classification);
             mappedClassification.RowAction = "I";
-            mappedClassification.DateCreated = DateTime.UtcNow.AddHours(2);
+            mappedClassification.DateCreated = DateTime.UtcNow;
 
             await _context.TransmissionClassifications.AddAsync(mappedClassification);
             await _context.SaveChangesAsync();
@@ -90,7 +90,7 @@ namespace Thandizo.Patients.BLL.Services
             classificationToUpdate.ClassificationName = classification.ClassificationName;
             classificationToUpdate.RowAction = "U";
             classificationToUpdate.ModifiedBy = classification.CreatedBy;
-            classificationToUpdate.DateModified = DateTime.UtcNow.AddHours(2);
+            classificationToUpdate.DateModified = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
 

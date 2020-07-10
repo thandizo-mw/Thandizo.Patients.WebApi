@@ -70,7 +70,7 @@ namespace Thandizo.Patients.BLL.Services
             {
                 //insert a new patient status
                 var mappedHistory = new AutoMapperHelper<PatientHistoryDTO, PatientHistory>().MapToObject(patientHistory);
-                mappedHistory.DateCreated = DateTime.UtcNow.AddHours(2);
+                mappedHistory.DateCreated = DateTime.UtcNow;
 
                 await _context.PatientHistory.AddAsync(mappedHistory);
 
