@@ -119,6 +119,20 @@ namespace Thandizo.Patients.WebApi.Controllers
 
             return Ok(response.Result);
         }
+        
+        [HttpGet("GetUnSubmittedPatientsByDate")]
+        [CatchException(MessageHelper.GetListError)]
+        public async Task<IActionResult> GetUnSubmittedPatientsByDate([FromQuery]DateTime fromSubmissionDate, DateTime toSubmissionDate)
+        {
+            var response = await _service.GetUnSubmittedPatientsByDate(fromSubmissionDate, toSubmissionDate);
+
+            if (response.IsErrorOccured)
+            {
+                return BadRequest(response.Message);
+            }
+
+            return Ok(response.Result);
+        }
 
         [HttpPut("ConfirmPatient")]
         [CatchException(MessageHelper.UpdateError)]

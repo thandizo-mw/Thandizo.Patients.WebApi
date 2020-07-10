@@ -13,6 +13,7 @@ using Thandizo.DataModels.General;
 using Thandizo.DataModels.Patients;
 using Thandizo.DataModels.Patients.Responses;
 using Thandizo.Patients.BLL.Models;
+using Thandizo.DataModels.Statistics;
 
 namespace Thandizo.Patients.BLL.Services
 {
@@ -99,6 +100,55 @@ namespace Thandizo.Patients.BLL.Services
             {
                 IsErrorOccured = false,
                 Result = dailyStatuses
+            };
+        }
+        public async Task<OutputResponse> GetSymptomStatisticsByDate(DateTime fromSubmittedDate, DateTime toSubmittedDate)
+        {
+            var dailyStatusesStaistics = await _context.PatientDailyStatuses.Where(x => x.DateSubmitted >= fromSubmittedDate.AddHours(-2) && x.DateSubmitted < toSubmittedDate)
+                                .GroupBy(x => new
+                                {
+                                    x.Symptom.SymptomName
+                                })
+                                .Select(x => new SymptomStatisticsDTO
+                                {
+                                    TotalNumberOfReports = x.Count(),
+                                    SymptomName = x.Key.SymptomName
+                                })
+                                .ToListAsync();
+
+            return new OutputResponse
+            {
+                IsErrorOccured = false,
+                Result = dailyStatusesStaistics
+            };
+        }
+        public async Task<OutputResponse> GetPatientSymptomStatsByDate(DateTime fromSubmittedDate, DateTime toSubmittedDate)
+        {
+            var dailyPatientStatusesStaistics = await _context.PatientDailyStatuses.Where(x => x.DateSubmitted >= fromSubmittedDate.AddHours(-2) && x.DateSubmitted < toSubmittedDate)
+                                .GroupBy(x => new
+                                {
+                                    x.PatientId,
+                                    x.Symptom.SymptomName
+                                }).Select(x => new
+                                {
+                                    x.Key.PatientId,
+                                    x.Key.SymptomName
+                                })
+                                .GroupBy(x => new
+                                {
+                                    x.SymptomName
+                                })
+                                .Select(x => new SymptomStatisticsDTO
+                                {
+                                    TotalNumberOfReports = x.Count(),
+                                    SymptomName = x.Key.SymptomName
+                                })
+                                .ToListAsync();
+
+            return new OutputResponse
+            {
+                IsErrorOccured = false,
+                Result = dailyPatientStatusesStaistics
             };
         }
 

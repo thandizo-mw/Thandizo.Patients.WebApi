@@ -15,5 +15,6 @@ namespace Thandizo.Patients.BLL.Services
         Task<OutputResponse> ConfirmPatient(long patientId);
         Task<OutputResponse> GetByResponseTeamMember(string phoneNumber, string valuesFilter);
         Task<OutputResponse> GetPatientsByDate(DateTime fromSubmittedDate, DateTime toSubmittedDate);
+        Task<OutputResponse> GetUnSubmittedPatientsByDate(DateTime fromSubmittedDate, DateTime toSubmittedDate);
     }
 }

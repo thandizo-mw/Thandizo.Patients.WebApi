@@ -12,5 +12,7 @@ namespace Thandizo.Patients.BLL.Services
         Task<OutputResponse> Get(long submissionId);
         Task<OutputResponse> GetByPatient(long patientId);         
         Task<OutputResponse> GetByPatientByDate(long patientId, DateTime fromSubmittedDate, DateTime toSubmittedDate);
+        Task<OutputResponse> GetSymptomStatisticsByDate(DateTime fromSubmittedDate, DateTime toSubmittedDate);
+        Task<OutputResponse> GetPatientSymptomStatsByDate(DateTime fromSubmittedDate, DateTime toSubmittedDate);
     }
 }

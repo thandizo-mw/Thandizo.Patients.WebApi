@@ -61,6 +61,32 @@ namespace Thandizo.Patients.WebApi.Controllers
 
             return Ok(response.Result);
         }
+        [HttpGet("GetSymptomStatisticsByDate")]
+        [CatchException(MessageHelper.GetListError)]
+        public async Task<IActionResult> GetSymptomStatisticsByDate([FromQuery] DateTime fromSubmissionDate, DateTime toSubmissionDate)
+        {
+            var response = await _service.GetSymptomStatisticsByDate(fromSubmissionDate, toSubmissionDate);
+
+            if (response.IsErrorOccured)
+            {
+                return BadRequest(response.Message);
+            }
+
+            return Ok(response.Result);
+        }
+        [HttpGet("GetPatientSymptomStatsByDate")]
+        [CatchException(MessageHelper.GetListError)]
+        public async Task<IActionResult> GetPatientSymptomStatsByDate([FromQuery] DateTime fromSubmissionDate, DateTime toSubmissionDate)
+        {
+            var response = await _service.GetPatientSymptomStatsByDate(fromSubmissionDate, toSubmissionDate);
+
+            if (response.IsErrorOccured)
+            {
+                return BadRequest(response.Message);
+            }
+
+            return Ok(response.Result);
+        }
 
         [HttpPost("Add")]
         [ValidateModelState]
